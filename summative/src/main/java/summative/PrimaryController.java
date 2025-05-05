@@ -34,6 +34,15 @@ public class PrimaryController {
     private MenuItem horizontalFlip;
 
     @FXML
+    private MenuItem verticalFlip;
+
+    @FXML
+    private MenuItem onClockwiseRotate;
+
+    @FXML
+    private MenuItem onCounterclockwiseRotate;
+
+    @FXML
     void onOpenImage(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Image File");
@@ -91,6 +100,59 @@ public class PrimaryController {
                 writer.setColor(width - i - 1, j, reader.getColor(i, j));
             }
         }
+        imageView.setImage(writableImage);
+    }
+
+    @FXML
+    void onVerticalFlip(ActionEvent event) {
+        int width = (int) imageView.getImage().getWidth();
+        int height = (int) imageView.getImage().getHeight();
+
+        WritableImage writableImage = new WritableImage(width, height);
+        PixelReader reader = imageView.getImage().getPixelReader();
+        PixelWriter writer = writableImage.getPixelWriter();
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                writer.setColor(i, height - j - 1, reader.getColor(i, j));
+            }
+        }
+        imageView.setImage(writableImage);
+    }
+
+    @FXML
+    void onClockwiseRotate(ActionEvent event) {
+        int width = (int) imageView.getImage().getWidth();
+        int height = (int) imageView.getImage().getHeight();
+
+        WritableImage writableImage = new WritableImage(height, width);
+        PixelReader reader = imageView.getImage().getPixelReader();
+        PixelWriter writer = writableImage.getPixelWriter();
+
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                writer.setColor(height - i - 1, j, reader.getColor(j, i));
+            }
+        }
+
+        imageView.setImage(writableImage);
+    }
+
+    @FXML
+    void onCounterclockwiseRotate(ActionEvent event) {
+        int width = (int) imageView.getImage().getWidth();
+        int height = (int) imageView.getImage().getHeight();
+
+        WritableImage writableImage = new WritableImage(height, width);
+        PixelReader reader = imageView.getImage().getPixelReader();
+        PixelWriter writer = writableImage.getPixelWriter();
+
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                writer.setColor(i, width - j - 1, reader.getColor(j, i));
+            }
+        }
+
         imageView.setImage(writableImage);
     }
 
