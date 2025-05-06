@@ -49,8 +49,8 @@
                   <MenuItem fx:id="openImage" mnemonicParsing="false" onAction="#onOpenImage" text="Open" />
                   <MenuItem fx:id="saveImage" mnemonicParsing="false" onAction="#onSaveImage" text="Save As" />
                   <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem fx:id="resetImage1" mnemonicParsing="false" onAction="#onResetImage" text="Undo" />
-                  <MenuItem fx:id="resetImage11" mnemonicParsing="false" onAction="#onResetImage" text="Redo" />
+                  <MenuItem fx:id="undoChanges" mnemonicParsing="false" onAction="#onUndo" text="Undo" />
+                  <MenuItem fx:id="redoChanges" mnemonicParsing="false" onAction="#onRedo" text="Redo" />
                   <MenuItem fx:id="resetImage" mnemonicParsing="false" onAction="#onResetImage" text="Reset Image" />
                </items>
         </Menu>
@@ -82,7 +82,8 @@
                   <MenuItem fx:id="onInvert" mnemonicParsing="false" onAction="#onInvert" text="Inverted" />
                   <MenuItem fx:id="onSepiaFiler" mnemonicParsing="false" onAction="#onSepiaFilter" text="Sepia" />
                   <MenuItem fx:id="onGaussianBlur" mnemonicParsing="false" onAction="#onGaussianBlur" text="Gaussian Blur" />
-                  <MenuItem fx:id="onGaussianBlur1" mnemonicParsing="false" onAction="#onGaussianBlur" text="Edge Detection" />
+                  <MenuItem fx:id="onEdgeDetection" mnemonicParsing="false" onAction="#onEdgeDetection" text="Edge Detection" />
+                  <MenuItem fx:id="onPixelate" mnemonicParsing="false" onAction="#onPixelate" text="Pixelate" />
               </items>
             </Menu>
       </menus>

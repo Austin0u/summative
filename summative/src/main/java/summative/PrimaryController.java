@@ -34,6 +34,12 @@ public class PrimaryController {
     private MenuItem saveImage;
 
     @FXML
+    private MenuItem undoChanges;
+
+    @FXML
+    private MenuItem redoChanges;
+
+    @FXML
     private MenuItem resetImage;
 
     @FXML
@@ -61,10 +67,16 @@ public class PrimaryController {
     private MenuItem onInvert;
 
     @FXML
+    private MenuItem onSepiaFiler;
+
+    @FXML
+    private MenuItem onEdgeDetection;
+
+    @FXML
     private MenuItem onGaussianBlur;
 
     @FXML
-    private MenuItem onSepiaFiler;
+    private MenuItem onPixelate;
 
     // File
     @FXML
@@ -109,6 +121,16 @@ public class PrimaryController {
                 alert.showAndWait();
             }
         }
+    }
+
+    @FXML
+    void onUndo(ActionEvent event) { // WIP
+        imageView.setImage(originalImage);
+    }
+
+    @FXML
+    void onRedo(ActionEvent event) { // WIP
+        imageView.setImage(originalImage);
     }
 
     @FXML
@@ -301,15 +323,61 @@ public class PrimaryController {
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
+                Color color = reader.getColor(x, y);
+                double red = color.getRed();
+                double green = color.getGreen();
+                double blue = color.getBlue();
+
+                // Sepia filter formula
+                double newRed = Math.min(1.0, 0.393 * red + 0.769 * green + 0.189 * blue);
+                double newGreen = Math.min(1.0, 0.349 * red + 0.686 * green + 0.168 * blue);
+                double newBlue = Math.min(1.0, 0.272 * red + 0.534 * green + 0.131 * blue);
+
+                writer.setColor(x, y, new Color(newRed, newGreen, newBlue, color.getOpacity()));
+            }
+        }
+
+        imageView.setImage(writableImage);
+    }
+
+    @FXML
+    void onGaussianBlur(ActionEvent event) { // WIP
+        int width = (int) imageView.getImage().getWidth();
+        int height = (int) imageView.getImage().getHeight();
+
+        WritableImage writableImage = new WritableImage(width, height);
+        PixelReader reader = imageView.getImage().getPixelReader();
+        PixelWriter writer = writableImage.getPixelWriter();
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 writer.setColor(x, y, reader.getColor(x, y));
             }
         }
 
         imageView.setImage(writableImage);
     }
-    
+
     @FXML
-    void onGaussianBlur(ActionEvent event) {
+    void onEdgeDetection(ActionEvent event) { // WIP
+        int width = (int) imageView.getImage().getWidth();
+        int height = (int) imageView.getImage().getHeight();
+
+        WritableImage writableImage = new WritableImage(width, height);
+        PixelReader reader = imageView.getImage().getPixelReader();
+        PixelWriter writer = writableImage.getPixelWriter();
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                writer.setColor(x, y, reader.getColor(x, y));
+            }
+        }
+
+        imageView.setImage(writableImage);
+    }
+
+    @FXML
+    void onPixelate(ActionEvent event) { // WIP
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
