@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
 
 public class App extends Application {
 
@@ -16,7 +17,8 @@ public class App extends Application {
         PrimaryController controller = loader.getController();
         controller.setStage(primaryStage);
 
-        primaryStage.setTitle("Photo Editor (Budget Edition)");
+        primaryStage.setTitle("Silly Photo Editor");
+        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("icon2.png")));
         primaryStage.setScene(new Scene(root, 750, 750));
         primaryStage.show();
     }

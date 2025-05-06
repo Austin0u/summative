@@ -49,14 +49,40 @@
                   <MenuItem fx:id="openImage" mnemonicParsing="false" onAction="#onOpenImage" text="Open" />
                   <MenuItem fx:id="saveImage" mnemonicParsing="false" onAction="#onSaveImage" text="Save As" />
                   <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="resetImage1" mnemonicParsing="false" onAction="#onResetImage" text="Undo" />
+                  <MenuItem fx:id="resetImage11" mnemonicParsing="false" onAction="#onResetImage" text="Redo" />
+                  <MenuItem fx:id="resetImage" mnemonicParsing="false" onAction="#onResetImage" text="Reset Image" />
                </items>
         </Menu>
-            <Menu mnemonicParsing="false" text="Transformation">
+            <Menu mnemonicParsing="false" text="Transform">
               <items>
-                <MenuItem fx:id="horizontalFlip" mnemonicParsing="false" onAction="#onHorizontalFlip" text="Horizontal Flip" />
-                  <MenuItem fx:id="verticalFlip" mnemonicParsing="false" onAction="#onVerticalFlip" text="Vertical Flip" />
-                  <MenuItem fx:id="onClockwiseRotate" mnemonicParsing="false" onAction="#onClockwiseRotate" text="Rotate Clockwise" />
-                  <MenuItem fx:id="onCounterclockwiseRotate" mnemonicParsing="false" onAction="#onCounterclockwiseRotate" text="Rotate Counterclockwise" />
+                  <Menu mnemonicParsing="false" text="Flip">
+                    <items>
+                      <MenuItem fx:id="horizontalFlip" mnemonicParsing="false" onAction="#onHorizontalFlip" text="Flip Horiztonally" />
+                        <MenuItem fx:id="verticalFlip" mnemonicParsing="false" onAction="#onVerticalFlip" text="Flip Vertically" />
+                    </items>
+                  </Menu>
+                  <Menu mnemonicParsing="false" text="Rotate">
+                    <items>
+                        <MenuItem fx:id="onClockwiseRotate" mnemonicParsing="false" onAction="#onClockwiseRotate" text="Rotate 90° Clockwise" />
+                        <MenuItem fx:id="onCounterclockwiseRotate" mnemonicParsing="false" onAction="#onCounterclockwiseRotate" text="Rotate 90° Counterclockwise" />
+                    </items>
+                  </Menu>
+              </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Adjust">
+              <items>
+                  <MenuItem fx:id="onSaturation" mnemonicParsing="false" onAction="#onSaturationAdjust" text="Saturation" />
+                  <MenuItem fx:id="onBrightnessAdjust" mnemonicParsing="false" onAction="#onBrightnessAdjust" text="Brightness" />
+              </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Filters">
+              <items>
+                <MenuItem fx:id="onGreyscale" mnemonicParsing="false" onAction="#onGreyscale" text="Greyscale" />
+                  <MenuItem fx:id="onInvert" mnemonicParsing="false" onAction="#onInvert" text="Inverted" />
+                  <MenuItem fx:id="onSepiaFiler" mnemonicParsing="false" onAction="#onSepiaFilter" text="Sepia" />
+                  <MenuItem fx:id="onGaussianBlur" mnemonicParsing="false" onAction="#onGaussianBlur" text="Gaussian Blur" />
+                  <MenuItem fx:id="onGaussianBlur1" mnemonicParsing="false" onAction="#onGaussianBlur" text="Edge Detection" />
               </items>
             </Menu>
       </menus>
