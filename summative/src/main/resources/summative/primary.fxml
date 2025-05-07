@@ -72,11 +72,11 @@
             <Menu mnemonicParsing="false" text="Effect">
               <items>
                   <MenuItem fx:id="onBulge" mnemonicParsing="false" onAction="#onBulge" text="Bulge" />
-                  <MenuItem fx:id="onColorOverlay" mnemonicParsing="false" onAction="#onColorOverlay" text="Colour Overlay" />
+                  <MenuItem fx:id="onColorOverlay" mnemonicParsing="false" onAction="#onColorOverlay" text="Color Overlay" />
                   <MenuItem fx:id="onPixelation" mnemonicParsing="false" onAction="#onPixelation" text="Pixelation" />
                   <MenuItem fx:id="onVignette" mnemonicParsing="false" onAction="#onVignette" text="Vignette" />
                   <MenuItem fx:id="onEdgeDetection" mnemonicParsing="false" onAction="#onEdgeDetection" text="Edge Detection" />
-                  <MenuItem fx:id="onEmboss" mnemonicParsing="false" onAction="#onEdgeDetection" text="Emboss" />
+                  <MenuItem fx:id="onEmboss" mnemonicParsing="false" onAction="#onEmboss" text="Emboss" />
                   <MenuItem fx:id="onGaussianBlur" mnemonicParsing="false" onAction="#onGaussianBlur" text="Gaussian Blur" />
               </items>
             </Menu>

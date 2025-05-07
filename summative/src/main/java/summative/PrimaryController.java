@@ -244,7 +244,7 @@ public class PrimaryController {
                 double green = color.getGreen() * 0.71;
                 double blue = color.getBlue() * 0.07;
 
-                double grayscale = red + green + blue; // Combine weighted values
+                double grayscale = red + green + blue;
                 Color newColor = new Color(grayscale, grayscale, grayscale, color.getOpacity());
                 writer.setColor(x, y, newColor);
             }
@@ -345,7 +345,6 @@ public class PrimaryController {
 
         double cx = width / 2.0;
         double cy = height / 2.0;
-        double strength = 0.5; // Adjust this value for more or less bulge effect
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -353,12 +352,14 @@ public class PrimaryController {
                 double dy = y - cy;
                 double radius = Math.sqrt(dx * dx + dy * dy);
                 double angle = Math.atan2(dy, dx);
-                double newRadius = radius * (1 + strength * Math.exp(-radius / (width / 2.0)));
+                double newRadius = Math.pow(radius, 1.6) / 30;
 
                 int newX = (int) (cx + newRadius * Math.cos(angle));
                 int newY = (int) (cy + newRadius * Math.sin(angle));
-
-                writer.setColor(x, y, reader.getColor(newX, newY));
+                
+                if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
+                    writer.setColor(x, y, reader.getColor(newX, newY));
+                }
             }
         }
 
@@ -374,10 +375,14 @@ public class PrimaryController {
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
 
+        Color overlayColor = new Color(0.36, 0.61, 0.61, 0.5); // Changing opacity doesn't do anything?
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                // rest here
-                writer.setColor(x, y, reader.getColor(x, y));
+                Color color = reader.getColor(x, y);
+
+                Color newColour = color.interpolate(overlayColor, 0.5);
+                writer.setColor(x, y, newColour);
             }
         }
 
@@ -433,7 +438,7 @@ public class PrimaryController {
                 factor = Math.max(0.3, factor); // clamping
 
                 Color color = reader.getColor(x, y);
-                Color newColor = Color.hsb(color.getHue(), color.getSaturation(), color.getBrightness() * factor, color.getOpacity());
+                Color newColor = Color.hsb(color.getHue(), color.getSaturation(), color.getBrightness() * factor, color.getOpacity()); // check this
                 writer.setColor(x, y, newColor);
             }
         }
@@ -458,13 +463,37 @@ public class PrimaryController {
         int kernelSize = 3;
         int offset = 0;
 
-        // rest here
+        for (int y = offset; y < height; y++) {
+            for (int x = offset; x < width; x++) {
+                double red = 0;
+                double green = 0;
+                double blue = 0;
+
+                for (int ky = 0; ky < kernelSize && y + ky < height; ky++) {
+                    for (int kx = 0; kx < kernelSize  && x + kx < height; kx++) {
+                        Color kernelColor = reader.getColor(x + kx - offset, y + ky - offset);
+                        red += kernelColor.getRed() * kernel[ky][kx];
+                        green += kernelColor.getGreen() * kernel[ky][kx];
+                        blue += kernelColor.getBlue() * kernel[ky][kx];
+                    }
+                }
+
+                // clamp
+                red = Math.max(0.0, Math.min(red, 1.0));
+                green = Math.max(0.0, Math.min(green, 1.0));
+                blue = Math.max(0.0, Math.min(blue, 1.0));
+
+                Color newColor = new Color(red, green, blue, reader.getColor(x, y).getOpacity());
+
+                writer.setColor(x, y, newColor);
+            }
+        }
 
         imageView.setImage(writableImage);
     }
 
     @FXML
-    void onEmboss(ActionEvent event) { // WIP
+    void onEmboss(ActionEvent event) { 
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -481,8 +510,31 @@ public class PrimaryController {
         int kernelSize = 3;
         int offset = 0; 
 
-        // rest here
+        for (int y = offset; y < height; y++) {
+            for (int x = offset; x < width; x++) {
+                double red = 0;
+                double green = 0;
+                double blue = 0;
 
+                for (int ky = 0; ky < kernelSize && y + ky < height; ky++) {
+                    for (int kx = 0; kx < kernelSize  && x + kx < height; kx++) {
+                        Color kernelColor = reader.getColor(x + kx - offset, y + ky - offset);
+                        red += kernelColor.getRed() * kernel[ky][kx];
+                        green += kernelColor.getGreen() * kernel[ky][kx];
+                        blue += kernelColor.getBlue() * kernel[ky][kx];
+                    }
+                }
+
+                // clamp
+                red = Math.max(0.0, Math.min(red, 1.0));
+                green = Math.max(0.0, Math.min(green, 1.0));
+                blue = Math.max(0.0, Math.min(blue, 1.0));
+
+                Color newColor = new Color(red, green, blue, reader.getColor(x, y).getOpacity());
+
+                writer.setColor(x, y, newColor);
+            }
+        }
         imageView.setImage(writableImage);
     }
 
@@ -503,22 +555,6 @@ public class PrimaryController {
 
         imageView.setImage(writableImage);
     }
-
-    /*
-     * Accessing a pixels colors
-     * 
-     * Color color = reader.getColor(x, y);
-     * double red = color.getRed();
-     * double green = color.getGreen();
-     * double blue = color.getBlue();
-     */
-
-    /*
-     * Modifying a pixels colors
-     * 
-     * Color newColor = new Color(1.0 - red, 1.0 - green, 1.0 - blue,
-     * color.getOpacity());
-     */
 
     // DO NOT REMOVE THIS METHOD!
     public void setStage(Stage stage) {
