@@ -188,16 +188,16 @@ public class PrimaryController {
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
 
-        double cx = width / 2;
-        double cy = height / 2;
-        double angle = Math.toRadians(90);
+        double cx = width / 2.0; 
+        double cy = height / 2.0; 
+        double angle = Math.toRadians(90); // -90 for counterclockwise 
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                double dx = x - cx;
-                double dy = y - cy;
-                int newX = (int) (dx * Math.cos(angle) - dy * Math.sin(angle) + cx);
-                int newY = (int) (dx * Math.sin(angle) + dy * Math.cos(angle) + cy);
+                double dx = x - cx; 
+                double dy = y - cy; 
+                int newX = (int) Math.round(dx * Math.cos(angle) - dy * Math.sin(angle) + cx); // fix was round?                                                      // better accuracy
+                int newY = (int) Math.round(dx * Math.sin(angle) + dy * Math.cos(angle) + cy); 
 
                 if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
                     writer.setColor(newX, newY, reader.getColor(x, y));
