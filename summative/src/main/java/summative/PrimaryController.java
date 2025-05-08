@@ -244,8 +244,8 @@ public class PrimaryController {
                 double green = color.getGreen() * 0.71;
                 double blue = color.getBlue() * 0.07;
 
-                double grayscale = red + green + blue;
-                Color newColor = new Color(grayscale, grayscale, grayscale, color.getOpacity());
+                double gray = red + green + blue; // check this too
+                Color newColor = new Color(gray, gray, gray, color.getOpacity());
                 writer.setColor(x, y, newColor);
             }
         }
@@ -270,9 +270,9 @@ public class PrimaryController {
                 double blue = color.getBlue();
 
                 // Sepia filter formula
-                double newRed = Math.min(1.0, 0.393 * red + 0.769 * green + 0.189 * blue);
-                double newGreen = Math.min(1.0, 0.349 * red + 0.686 * green + 0.168 * blue);
-                double newBlue = Math.min(1.0, 0.272 * red + 0.534 * green + 0.131 * blue);
+                double newRed = Math.min(0.393 * red + 0.769 * green + 0.189 * blue,1.0);
+                double newGreen = Math.min(0.349 * red + 0.686 * green + 0.168 * blue, 1.0);
+                double newBlue = Math.min(0.272 * red + 0.534 * green + 0.131 * blue, 1.0);
 
                 Color newColor = new Color(newRed, newGreen, newBlue, color.getOpacity());
                 writer.setColor(x, y, newColor);
@@ -306,26 +306,30 @@ public class PrimaryController {
     }
 
     @FXML
-    void onBrightnessAdjust(ActionEvent event) {
+    public void onBrightnessAdjust(ActionEvent event) {
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
         WritableImage writableImage = new WritableImage(width, height);
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
+        System.out.println(event);
 
-        double factor = 1.2; // adjust here
+        double factor = 0.2; // adjust here
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 Color color = reader.getColor(x, y);
+                double red = color.getRed();
+                double green = color.getGreen();
+                double blue = color.getBlue();
 
                 // clamp
-                double red = Math.min(color.getRed() * factor, 1.0);
-                double green = Math.min(color.getGreen() * factor, 1.0); 
-                double blue = Math.min(color.getBlue() * factor, 1.0); 
+                double newRed = Math.min(red * (1 + factor), 1.0);
+                double newGreen = Math.min(green * (1 + factor), 1.0); 
+                double newBlue = Math.min(blue * (1 + factor), 1.0); 
 
-                Color newColor = new Color(red, green, blue, color.getOpacity());
+                Color newColor = new Color(newRed, newGreen, newBlue, color.getOpacity());
                 writer.setColor(x, y, newColor);
             }
         }
@@ -352,7 +356,7 @@ public class PrimaryController {
                 double dy = y - cy;
                 double radius = Math.sqrt(dx * dx + dy * dy);
                 double angle = Math.atan2(dy, dx);
-                double newRadius = Math.pow(radius, 1.6) / 30;
+                double newRadius = Math.pow(radius, 1.6) / 30; // adjust here (1.6 and 30 are the examples from doc)
 
                 int newX = (int) (cx + newRadius * Math.cos(angle));
                 int newY = (int) (cy + newRadius * Math.sin(angle));
@@ -367,7 +371,7 @@ public class PrimaryController {
     }
 
     @FXML
-    void onColorOverlay(ActionEvent event) { // WIP
+    void onColorOverlay(ActionEvent event) {
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -381,7 +385,7 @@ public class PrimaryController {
             for (int x = 0; x < width; x++) {
                 Color color = reader.getColor(x, y);
 
-                Color newColour = color.interpolate(overlayColor, 0.5);
+                Color newColour = color.interpolate(overlayColor, 0.5); // 0.5 = 5-% mix
                 writer.setColor(x, y, newColour);
             }
         }
@@ -390,7 +394,7 @@ public class PrimaryController {
     }
 
     @FXML
-    void onPixelation(ActionEvent event) { // WIP
+    void onPixelation(ActionEvent event) {
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -398,7 +402,7 @@ public class PrimaryController {
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
 
-        int blockSize = 10; // Adjust for more pixelation effect
+        int blockSize = 10; // Adjust for more/less pixelation effect
 
         // Lopp through pixels in blocks
         for (int y = 0; y < height; y += blockSize) {
@@ -433,12 +437,10 @@ public class PrimaryController {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 double dist = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
-                double factor = 1 - (dist / maxDistance);
-
-                factor = Math.max(0.3, factor); // clamping
+                double factor = Math.max(1 - (dist / maxDistance), 0.3);
 
                 Color color = reader.getColor(x, y);
-                Color newColor = Color.hsb(color.getHue(), color.getSaturation(), color.getBrightness() * factor, color.getOpacity()); // check this
+                Color newColor = color.deriveColor(0, 1, factor, 1);
                 writer.setColor(x, y, newColor);
             }
         }
@@ -447,7 +449,7 @@ public class PrimaryController {
     }
 
     @FXML
-    void onEdgeDetection(ActionEvent event) { // WIP
+    void onEdgeDetection(ActionEvent event) {
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -539,7 +541,7 @@ public class PrimaryController {
     }
 
     @FXML
-    void onGaussianBlur(ActionEvent event) { // WIP
+    void onGaussianBlur(ActionEvent event) {
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
