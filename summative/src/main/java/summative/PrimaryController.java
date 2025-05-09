@@ -240,11 +240,11 @@ public class PrimaryController {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 Color color = reader.getColor(x, y);
-                double red = color.getRed() * 0.21;
-                double green = color.getGreen() * 0.71;
-                double blue = color.getBlue() * 0.07;
+                double red = color.getRed();
+                double green = color.getGreen();
+                double blue = color.getBlue();
 
-                double gray = red + green + blue; // check this too
+                double gray = red * 0.21 + green * 0.71 + blue * 0.07; // sum
                 Color newColor = new Color(gray, gray, gray, color.getOpacity());
                 writer.setColor(x, y, newColor);
             }
@@ -440,7 +440,7 @@ public class PrimaryController {
                 double factor = Math.max(1 - (dist / maxDistance), 0.3);
 
                 Color color = reader.getColor(x, y);
-                Color newColor = color.deriveColor(0, 1, factor, 1);
+                Color newColor = color.deriveColor(0, 1, 1, factor); // ???
                 writer.setColor(x, y, newColor);
             }
         }
@@ -472,7 +472,7 @@ public class PrimaryController {
                 double blue = 0;
 
                 for (int ky = 0; ky < kernelSize && y + ky < height; ky++) {
-                    for (int kx = 0; kx < kernelSize  && x + kx < height; kx++) {
+                    for (int kx = 0; kx < kernelSize  && x + kx < width; kx++) {
                         Color kernelColor = reader.getColor(x + kx - offset, y + ky - offset);
                         red += kernelColor.getRed() * kernel[ky][kx];
                         green += kernelColor.getGreen() * kernel[ky][kx];
@@ -504,13 +504,12 @@ public class PrimaryController {
         PixelWriter writer = writableImage.getPixelWriter();
 
         double[][] kernel = {
-                { 2, -1, 0 },
-                { -1, 1, 1 },
-                { 0, 1, 2 }
+            { 2, -1, 0 },
+            { -1, 1, 1 },
+            { 0, 1, 2 }
         };
-
         int kernelSize = 3;
-        int offset = 0; 
+        int offset = 0;
 
         for (int y = offset; y < height; y++) {
             for (int x = offset; x < width; x++) {
@@ -519,7 +518,7 @@ public class PrimaryController {
                 double blue = 0;
 
                 for (int ky = 0; ky < kernelSize && y + ky < height; ky++) {
-                    for (int kx = 0; kx < kernelSize  && x + kx < height; kx++) {
+                    for (int kx = 0; kx < kernelSize  && x + kx < width; kx++) {
                         Color kernelColor = reader.getColor(x + kx - offset, y + ky - offset);
                         red += kernelColor.getRed() * kernel[ky][kx];
                         green += kernelColor.getGreen() * kernel[ky][kx];
@@ -537,6 +536,7 @@ public class PrimaryController {
                 writer.setColor(x, y, newColor);
             }
         }
+
         imageView.setImage(writableImage);
     }
 
