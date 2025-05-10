@@ -208,7 +208,7 @@ public class PrimaryController {
         imageView.setImage(writableImage);
     }
 
-    // Original rotate, works with any non-square image:
+    // Alternative rotate, works with any non-square image:
     // @FXML
     // void onRotate(ActionEvent event) {
     //     int width = (int) imageView.getImage().getWidth();
@@ -517,15 +517,15 @@ public class PrimaryController {
                 double green = 0;
                 double blue = 0;
 
-                for (int ky = 0; ky < kernelSize && y + ky < height; ky++) {
-                    for (int kx = 0; kx < kernelSize  && x + kx < width; kx++) {
+                for (int ky = 0; ky < kernelSize && y + ky - offset < height; ky++) {
+                    for (int kx = 0; kx < kernelSize  && x + kx - offset < width; kx++) {
                         Color kernelColor = reader.getColor(x + kx - offset, y + ky - offset);
                         red += kernelColor.getRed() * kernel[ky][kx];
                         green += kernelColor.getGreen() * kernel[ky][kx];
                         blue += kernelColor.getBlue() * kernel[ky][kx];
                     }
                 }
-
+                
                 // clamp
                 red = Math.max(0.0, Math.min(red, 1.0));
                 green = Math.max(0.0, Math.min(green, 1.0));
