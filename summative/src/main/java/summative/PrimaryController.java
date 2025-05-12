@@ -82,9 +82,6 @@ public class PrimaryController {
     @FXML
     private MenuItem onEmboss;
 
-    @FXML
-    private MenuItem onGaussianBlur;
-
     // Menu
     @FXML
     void onOpenImage(ActionEvent event) {
@@ -504,7 +501,7 @@ public class PrimaryController {
         PixelWriter writer = writableImage.getPixelWriter();
 
         double[][] kernel = {
-            { 2, -1, 0 },
+            { -2, -1, 0 },
             { -1, 1, 1 },
             { 0, 1, 2 }
         };
@@ -517,15 +514,15 @@ public class PrimaryController {
                 double green = 0;
                 double blue = 0;
 
-                for (int ky = 0; ky < kernelSize && y + ky - offset < height; ky++) {
-                    for (int kx = 0; kx < kernelSize  && x + kx - offset < width; kx++) {
+                for (int ky = 0; ky < kernelSize && y + ky < height; ky++) {
+                    for (int kx = 0; kx < kernelSize  && x + kx < width; kx++) {
                         Color kernelColor = reader.getColor(x + kx - offset, y + ky - offset);
                         red += kernelColor.getRed() * kernel[ky][kx];
                         green += kernelColor.getGreen() * kernel[ky][kx];
                         blue += kernelColor.getBlue() * kernel[ky][kx];
                     }
                 }
-                
+
                 // clamp
                 red = Math.max(0.0, Math.min(red, 1.0));
                 green = Math.max(0.0, Math.min(green, 1.0));
@@ -534,24 +531,6 @@ public class PrimaryController {
                 Color newColor = new Color(red, green, blue, reader.getColor(x, y).getOpacity());
 
                 writer.setColor(x, y, newColor);
-            }
-        }
-
-        imageView.setImage(writableImage);
-    }
-
-    @FXML
-    void onGaussianBlur(ActionEvent event) {
-        int width = (int) imageView.getImage().getWidth();
-        int height = (int) imageView.getImage().getHeight();
-
-        WritableImage writableImage = new WritableImage(width, height);
-        PixelReader reader = imageView.getImage().getPixelReader();
-        PixelWriter writer = writableImage.getPixelWriter();
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                writer.setColor(x, y, reader.getColor(x, y));
             }
         }
 
