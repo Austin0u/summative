@@ -10,6 +10,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
@@ -81,6 +82,9 @@ public class PrimaryController {
 
     @FXML
     private MenuItem onEmboss;
+
+    @FXML
+    private Slider brightnessSlider;
 
     // Menu
     @FXML
@@ -310,9 +314,8 @@ public class PrimaryController {
         WritableImage writableImage = new WritableImage(width, height);
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
-        System.out.println(event);
 
-        double factor = 0.2; // adjust here
+        double factor = brightnessSlider.getValue() - 1;
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
