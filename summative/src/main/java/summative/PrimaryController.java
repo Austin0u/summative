@@ -14,12 +14,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Slider;
-import javafx.scene.control.Spinner;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
@@ -31,12 +26,13 @@ import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 public class PrimaryController {
 
     private Stage stage;
     private Image originalImage; // Use this to keep track of the original image
-    private Image beforePreviewImage; // For previewing
+    private Image previousImage; // For previewing
 
     // Main Menu
     @FXML
@@ -107,6 +103,12 @@ public class PrimaryController {
             return false;
         }
         return true;
+    }
+
+    private void restorePreviousImage() {
+        if (previousImage != null) {
+            imageView.setImage(previousImage);
+        }
     }
 
     // Menu
@@ -366,12 +368,12 @@ public class PrimaryController {
     }    
 
     @FXML
-    void onBrightnessAdjust(ActionEvent event) {
+    private void onBrightnessAdjust(ActionEvent event) {
         if (!isImageLoaded()) {
             return;
         }
 
-        beforePreviewImage = imageView.getImage(); // Store previous image for previous
+        previousImage = imageView.getImage(); // Store previous image for previous
 
         // Elements
         Stage dialog = new Stage();
@@ -394,10 +396,18 @@ public class PrimaryController {
         Button cancelButton = new Button("Cancel");
 
         // Functionality
+        dialog.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent windowEvent) {
+                restorePreviousImage(); // Cancels if 'x' is clicked
+                dialog.close();
+            }
+        });
+
         confirmButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                imageView.setImage(beforePreviewImage); // Reset back to original (so effect doesn't stack)
+                restorePreviousImage(); // Reset back to original (so effect doesn't stack)
                 adjustBrightness(slider.getValue());
                 dialog.close();
             }
@@ -406,7 +416,7 @@ public class PrimaryController {
         cancelButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                imageView.setImage(beforePreviewImage); // Restore to the image before if cancelled
+                restorePreviousImage(); // Restore to the image before if cancelled
                 dialog.close();
             }
         });
@@ -414,7 +424,7 @@ public class PrimaryController {
         previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { // so it shows without having to change slider
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                imageView.setImage(beforePreviewImage);
+                restorePreviousImage();
 
                 if (newValue) {
                     adjustBrightness(slider.getValue()); 
@@ -425,7 +435,7 @@ public class PrimaryController {
         slider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                imageView.setImage(beforePreviewImage); // reset
+                restorePreviousImage(); // reset
 
                 if (previewToggle.isSelected()) {
                     adjustBrightness((double) newValue); 
@@ -518,11 +528,110 @@ public class PrimaryController {
 
     @FXML
     void onColorOverlay(ActionEvent event) {
-        // Image check
         if (!isImageLoaded()) {
             return;
         }
 
+        previousImage = imageView.getImage(); // Store previous image for previous
+
+        // Elements
+        Stage dialog = new Stage();
+        dialog.setTitle("Color Overlay");
+        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
+
+        dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
+        dialog.setResizable(false);
+
+        ColorPicker colorPicker = new ColorPicker(); 
+
+        Label mixLabel = new Label("Mix %:");
+
+        Slider mixSlider = new Slider(0.0, 100.0, 50.0); 
+        mixSlider.setShowTickLabels(true);
+        mixSlider.setShowTickMarks(true);
+        mixSlider.setMajorTickUnit(25);
+        mixSlider.setBlockIncrement(10);
+
+        CheckBox previewToggle = new CheckBox("Preview");
+        previewToggle.setSelected(false);
+
+        Button confirmButton = new Button("Confirm");
+        Button cancelButton = new Button("Cancel");
+
+        // Functionality
+        dialog.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent windowEvent) {
+                restorePreviousImage(); // Cancels if 'x' is clicked
+                dialog.close();
+            }
+        });
+
+        confirmButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                restorePreviousImage(); // Reset back to original (so effect doesn't stack)
+                colorOverlayEffect(colorPicker.getValue(), mixSlider.getValue());
+                dialog.close();
+            }
+        });
+
+        cancelButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                restorePreviousImage(); // Restore to the image before if cancelled
+                dialog.close();
+            }
+        });
+
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { // so it shows without having to change slider
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                restorePreviousImage();
+
+                if (newValue) {
+                    colorOverlayEffect(colorPicker.getValue(), mixSlider.getValue());
+                } 
+            }
+        });
+        
+        colorPicker.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                restorePreviousImage(); // reset
+
+                if (previewToggle.isSelected()) {
+                    colorOverlayEffect(colorPicker.getValue(), mixSlider.getValue());
+                }
+            }
+        });
+
+        mixSlider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                restorePreviousImage(); // reset
+
+                if (previewToggle.isSelected()) {
+                    colorOverlayEffect(colorPicker.getValue(), (double) newValue); 
+                }
+            }
+        });
+
+        // Arrangement
+        VBox popup = new VBox(10, colorPicker, mixLabel, mixSlider);
+        popup.setAlignment(Pos.CENTER);
+        popup.setPadding(new Insets(10));
+
+        HBox options = new HBox(10, previewToggle, cancelButton, confirmButton);
+        options.setAlignment(Pos.BOTTOM_RIGHT); 
+
+        popup.getChildren().add(options);
+
+        Scene scene = new Scene(popup, 300, 175);
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
+
+    private void colorOverlayEffect(Color overlayColor, double mix) {
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -530,13 +639,13 @@ public class PrimaryController {
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
 
-        Color overlayColor = new Color(0.36, 0.61, 0.61, 0.5); // Changing opacity doesn't do anything?
+        // Color overlayColor = new Color(0.36, 0.61, 0.61, 0.5); // Changing opacity doesn't do anything?
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 Color color = reader.getColor(x, y);
 
-                Color newColour = color.interpolate(overlayColor, 0.5); // 0.5 = 5-% mix
+                Color newColour = color.interpolate(overlayColor, mix/100); // assume mix input is percent
                 writer.setColor(x, y, newColour);
             }
         }
@@ -550,7 +659,7 @@ public class PrimaryController {
             return;
         }
 
-        beforePreviewImage = imageView.getImage(); // Store previous image for previous
+        previousImage = imageView.getImage(); // Store previous image for previous
 
         // Elements
         Stage dialog = new Stage();
@@ -559,7 +668,7 @@ public class PrimaryController {
         dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
         dialog.setResizable(false);
 
-        Spinner<Integer> spinner = new Spinner<>(1, 30, 10, 1); 
+        Spinner<Integer> spinner = new Spinner<>(1, 50, 10, 1); 
         spinner.setEditable(true);
 
         CheckBox previewToggle = new CheckBox("Preview");
@@ -568,11 +677,19 @@ public class PrimaryController {
         Button confirmButton = new Button("Confirm");
         Button cancelButton = new Button("Cancel");
 
-        // Functionality
+        // 
+        dialog.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent windowEvent) {
+                restorePreviousImage(); // Cancels if 'x' is clicked
+                dialog.close();
+            }
+        });
+
         confirmButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                imageView.setImage(beforePreviewImage); // Reset back to original (so effect doesn't stack)
+                restorePreviousImage(); // Reset back to original (so effect doesn't stack)
                 pixelateEffect(spinner.getValue()); 
                 dialog.close();
             }
@@ -581,7 +698,7 @@ public class PrimaryController {
         cancelButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                imageView.setImage(beforePreviewImage); // Restore to the image before if cancelled
+                restorePreviousImage(); // Restore to the image before if cancelled
                 dialog.close();
             }
         });
@@ -589,7 +706,7 @@ public class PrimaryController {
         previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { // so it shows without having to change spinner
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                imageView.setImage(beforePreviewImage);
+                restorePreviousImage();
 
                 if (newValue) {
                     pixelateEffect(spinner.getValue());
@@ -600,7 +717,7 @@ public class PrimaryController {
         spinner.valueProperty().addListener(new ChangeListener<Integer>() {
             @Override
             public void changed(ObservableValue<? extends Integer> observable, Integer oldValue, Integer newValue) {
-                imageView.setImage(beforePreviewImage); // reset
+                restorePreviousImage(); // reset
 
                 if (previewToggle.isSelected()) {
                     pixelateEffect(newValue); 
@@ -647,7 +764,7 @@ public class PrimaryController {
 
         imageView.setImage(writableImage);
     }
-
+    
     @FXML
     void onVignette(ActionEvent event) {
         // Image check
