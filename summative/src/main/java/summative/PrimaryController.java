@@ -5,25 +5,38 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.event.EventHandler;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Spinner;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class PrimaryController {
 
     private Stage stage;
     private Image originalImage; // Use this to keep track of the original image
+    private Image beforePreviewImage; // For previewing
 
     // Main Menu
     @FXML
@@ -83,8 +96,18 @@ public class PrimaryController {
     @FXML
     private MenuItem onEmboss;
 
-    @FXML
-    private Slider brightnessSlider;
+    // Other
+    private boolean isImageLoaded() { // check and popup error
+        if (imageView.getImage() == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("No Image Loaded");
+            alert.setContentText("Please load an image first.");
+            alert.showAndWait();
+            return false;
+        }
+        return true;
+    }
 
     // Menu
     @FXML
@@ -116,6 +139,11 @@ public class PrimaryController {
 
     @FXML
     public void onSaveImage(ActionEvent event) {
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Image");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG files", "*.png"));
@@ -148,6 +176,11 @@ public class PrimaryController {
     // Transformations
     @FXML
     void onHorizontalFlip(ActionEvent event) {
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -165,6 +198,11 @@ public class PrimaryController {
 
     @FXML
     void onVerticalFlip(ActionEvent event) {
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -182,6 +220,11 @@ public class PrimaryController {
 
     @FXML
     void onRotate(ActionEvent event) {
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+        
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -231,6 +274,11 @@ public class PrimaryController {
     // Adjustments
     @FXML
     void onGrayscale(ActionEvent event) {
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -256,6 +304,11 @@ public class PrimaryController {
 
     @FXML
     void onSepiaFilter(ActionEvent event) {
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -282,8 +335,14 @@ public class PrimaryController {
 
         imageView.setImage(writableImage);
     }
+
     @FXML
     void onInvert(ActionEvent event) {
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -304,10 +363,92 @@ public class PrimaryController {
         }
 
         imageView.setImage(writableImage);
-    }
+    }    
 
     @FXML
-    public void onBrightnessAdjust(ActionEvent event) {
+    void onBrightnessAdjust(ActionEvent event) {
+        if (!isImageLoaded()) {
+            return;
+        }
+
+        beforePreviewImage = imageView.getImage(); // Store previous image for previous
+
+        // Elements
+        Stage dialog = new Stage();
+        dialog.setTitle("Adjust Brightness");
+        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
+
+        dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
+        dialog.setResizable(false);
+
+        Slider slider = new Slider(0.0, 2.0, 1.0); 
+        slider.setShowTickLabels(true);
+        slider.setShowTickMarks(true);
+        slider.setMajorTickUnit(0.5);
+        slider.setBlockIncrement(0.1);
+
+        CheckBox previewToggle = new CheckBox("Preview");
+        previewToggle.setSelected(false);
+
+        Button confirmButton = new Button("Confirm");
+        Button cancelButton = new Button("Cancel");
+
+        // Functionality
+        confirmButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                imageView.setImage(beforePreviewImage); // Reset back to original (so effect doesn't stack)
+                adjustBrightness(slider.getValue());
+                dialog.close();
+            }
+        });
+
+        cancelButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                imageView.setImage(beforePreviewImage); // Restore to the image before if cancelled
+                dialog.close();
+            }
+        });
+
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { // so it shows without having to change slider
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                imageView.setImage(beforePreviewImage);
+
+                if (newValue) {
+                    adjustBrightness(slider.getValue()); 
+                } 
+            }
+        });
+
+        slider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                imageView.setImage(beforePreviewImage); // reset
+
+                if (previewToggle.isSelected()) {
+                    adjustBrightness((double) newValue); 
+                }
+            }
+        });
+
+        // Arrangement
+        VBox popup = new VBox(10, slider);
+        popup.setAlignment(Pos.CENTER);
+        popup.setPadding(new Insets(10));
+
+        HBox options = new HBox(10, previewToggle, cancelButton, confirmButton);
+        options.setAlignment(Pos.BOTTOM_RIGHT); 
+
+        popup.getChildren().add(options);
+
+        Scene scene = new Scene(popup, 300, 100);
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
+
+    private void adjustBrightness(double sliderValue) {
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -315,7 +456,7 @@ public class PrimaryController {
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
 
-        double factor = brightnessSlider.getValue() - 1;
+        double factor = sliderValue - 1; // since slider is 0-2
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -325,9 +466,9 @@ public class PrimaryController {
                 double blue = color.getBlue();
 
                 // clamp
-                double newRed = Math.min(red * (1 + factor), 1.0);
-                double newGreen = Math.min(green * (1 + factor), 1.0); 
-                double newBlue = Math.min(blue * (1 + factor), 1.0); 
+                double newRed = Math.max(Math.min(red * (1 + factor), 1.0), 0.0);
+                double newGreen = Math.max(Math.min(green * (1 + factor), 1.0), 0.0);
+                double newBlue = Math.max(Math.min(blue * (1 + factor), 1.0), 0.0);
 
                 Color newColor = new Color(newRed, newGreen, newBlue, color.getOpacity());
                 writer.setColor(x, y, newColor);
@@ -337,9 +478,14 @@ public class PrimaryController {
         imageView.setImage(writableImage);
     }
 
-    // Filters
+    // Effects
     @FXML
     void onBulge(ActionEvent event) {
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -372,6 +518,11 @@ public class PrimaryController {
 
     @FXML
     void onColorOverlay(ActionEvent event) {
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -392,17 +543,93 @@ public class PrimaryController {
 
         imageView.setImage(writableImage);
     }
-
+    
     @FXML
     void onPixelation(ActionEvent event) {
+        if (!isImageLoaded()) {
+            return;
+        }
+
+        beforePreviewImage = imageView.getImage(); // Store previous image for previous
+
+        // Elements
+        Stage dialog = new Stage();
+        dialog.setTitle("Pixelate Image");
+        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
+        dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
+        dialog.setResizable(false);
+
+        Spinner<Integer> spinner = new Spinner<>(1, 30, 10, 1); 
+        spinner.setEditable(true);
+
+        CheckBox previewToggle = new CheckBox("Preview");
+        previewToggle.setSelected(false);
+
+        Button confirmButton = new Button("Confirm");
+        Button cancelButton = new Button("Cancel");
+
+        // Functionality
+        confirmButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                imageView.setImage(beforePreviewImage); // Reset back to original (so effect doesn't stack)
+                pixelateEffect(spinner.getValue()); 
+                dialog.close();
+            }
+        });
+
+        cancelButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                imageView.setImage(beforePreviewImage); // Restore to the image before if cancelled
+                dialog.close();
+            }
+        });
+
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { // so it shows without having to change spinner
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                imageView.setImage(beforePreviewImage);
+
+                if (newValue) {
+                    pixelateEffect(spinner.getValue());
+                }
+            }
+        });
+
+        spinner.valueProperty().addListener(new ChangeListener<Integer>() {
+            @Override
+            public void changed(ObservableValue<? extends Integer> observable, Integer oldValue, Integer newValue) {
+                imageView.setImage(beforePreviewImage); // reset
+
+                if (previewToggle.isSelected()) {
+                    pixelateEffect(newValue); 
+                }
+            }
+        });
+
+        // Arrangement
+        VBox popup = new VBox(10, spinner);
+        popup.setAlignment(Pos.CENTER);
+        popup.setPadding(new Insets(10));
+
+        HBox options = new HBox(10, previewToggle, cancelButton, confirmButton);
+        options.setAlignment(Pos.BOTTOM_RIGHT); 
+
+        popup.getChildren().add(options);
+
+        Scene scene = new Scene(popup, 300, 100);
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
+
+    private void pixelateEffect(int blockSize) {
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
         WritableImage writableImage = new WritableImage(width, height);
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
-
-        int blockSize = 10; // Adjust for more/less pixelation effect
 
         // Lopp through pixels in blocks
         for (int y = 0; y < height; y += blockSize) {
@@ -423,6 +650,11 @@ public class PrimaryController {
 
     @FXML
     void onVignette(ActionEvent event) {
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -450,6 +682,11 @@ public class PrimaryController {
 
     @FXML
     void onEdgeDetection(ActionEvent event) {
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -496,6 +733,11 @@ public class PrimaryController {
 
     @FXML
     void onEmboss(ActionEvent event) { 
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
