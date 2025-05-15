@@ -421,7 +421,7 @@ public class PrimaryController {
             }
         });
 
-        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { // so it shows without having to change slider
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { // shows effect without having to change slider
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 restorePreviousImage();
@@ -512,7 +512,7 @@ public class PrimaryController {
                 double dy = y - cy;
                 double radius = Math.sqrt(dx * dx + dy * dy);
                 double angle = Math.atan2(dy, dx);
-                double newRadius = Math.pow(radius, 1.6) / 30; // adjust here (1.6 and 30 are the examples from doc)
+                double newRadius = Math.pow(radius, 1.6) / 30; // adjust here
 
                 int newX = (int) (cx + newRadius * Math.cos(angle));
                 int newY = (int) (cy + newRadius * Math.sin(angle));
@@ -584,7 +584,7 @@ public class PrimaryController {
             }
         });
 
-        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { // so it shows without having to change slider
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { 
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 restorePreviousImage();
@@ -703,7 +703,7 @@ public class PrimaryController {
             }
         });
 
-        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { // so it shows without having to change spinner
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { // shows effect without having to change spinner
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 restorePreviousImage();
@@ -785,11 +785,11 @@ public class PrimaryController {
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                double dist = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
-                double factor = Math.max(1 - (dist / maxDistance), 0.3);
+                double distance = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
+                double brightnessFactor = Math.max(1 - (distance / maxDistance), 0.3);
 
                 Color color = reader.getColor(x, y);
-                Color newColor = color.deriveColor(0, 1, 1, factor); // ???
+                Color newColor = color.deriveColor(0, 1, 1, brightnessFactor); 
                 writer.setColor(x, y, newColor);
             }
         }
