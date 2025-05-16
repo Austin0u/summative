@@ -432,7 +432,7 @@ public class PrimaryController {
             }
         });
 
-        slider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+        slider.valueProperty().addListener(new ChangeListener<Number>() { 
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 restorePreviousImage(); // reset
@@ -491,6 +491,96 @@ public class PrimaryController {
     // Effects
     @FXML
     void onBulge(ActionEvent event) {
+        if (!isImageLoaded()) {
+            return;
+        }
+
+        previousImage = imageView.getImage(); // Store previous image for previous
+
+        // Elements
+        Stage dialog = new Stage();
+        dialog.setTitle("Apply Bulge Effect");
+        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
+
+        dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
+        dialog.setResizable(false);
+
+        Slider slider = new Slider(0.5, 2.5, 1.5);
+        slider.setShowTickLabels(true);
+        slider.setShowTickMarks(true);
+        slider.setMajorTickUnit(0.5);
+        slider.setBlockIncrement(0.1);
+
+        CheckBox previewToggle = new CheckBox("Preview");
+        previewToggle.setSelected(false);
+
+        Button confirmButton = new Button("Confirm");
+        Button cancelButton = new Button("Cancel");
+
+        // Functionality
+        dialog.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent windowEvent) {
+                restorePreviousImage(); // Cancels if 'x' is clicked
+                dialog.close();
+            }
+        });
+
+        confirmButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                restorePreviousImage(); // Reset back to original (so effect doesn't stack)
+                applyBulge(slider.getValue());
+                dialog.close();
+            }
+        });
+
+        cancelButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                restorePreviousImage(); // Restore to the image before if cancelled
+                dialog.close();
+            }
+        });
+
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { 
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                restorePreviousImage();
+
+                if (newValue) {
+                    applyBulge(slider.getValue());
+                }
+            }
+        });
+
+        slider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                restorePreviousImage(); // reset
+
+                if (previewToggle.isSelected()) {
+                    applyBulge((double) newValue);
+                }
+            }
+        });
+
+        // Arrangement
+        VBox popup = new VBox(10, slider);
+        popup.setAlignment(Pos.CENTER);
+        popup.setPadding(new Insets(10));
+
+        HBox options = new HBox(10, previewToggle, cancelButton, confirmButton);
+        options.setAlignment(Pos.BOTTOM_RIGHT);
+
+        popup.getChildren().add(options);
+
+        Scene scene = new Scene(popup, 300, 100);
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
+
+    private void applyBulge(double strength) {
         // Image check
         if (!isImageLoaded()) {
             return;
@@ -505,6 +595,7 @@ public class PrimaryController {
 
         double cx = width / 2.0;
         double cy = height / 2.0;
+        double maxRadius = Math.sqrt(cx * cx + cy * cy); // max distance from center
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -512,7 +603,10 @@ public class PrimaryController {
                 double dy = y - cy;
                 double radius = Math.sqrt(dx * dx + dy * dy);
                 double angle = Math.atan2(dy, dx);
-                double newRadius = Math.pow(radius, 1.6) / 30; // adjust here
+                // double newRadius = Math.pow(radius, 1.6) / 30; // original
+
+                double newRadius = Math.pow(radius, strength); // bulge effect
+                newRadius *= maxRadius / Math.pow(maxRadius, strength); // correct the position (else it will "zooms")
 
                 int newX = (int) (cx + newRadius * Math.cos(angle));
                 int newY = (int) (cy + newRadius * Math.sin(angle));
@@ -571,7 +665,7 @@ public class PrimaryController {
             @Override
             public void handle(ActionEvent actionEvent) {
                 restorePreviousImage(); // Reset back to original (so effect doesn't stack)
-                colorOverlayEffect(colorPicker.getValue(), mixSlider.getValue());
+                applyColorOverlay(colorPicker.getValue(), mixSlider.getValue());
                 dialog.close();
             }
         });
@@ -590,7 +684,7 @@ public class PrimaryController {
                 restorePreviousImage();
 
                 if (newValue) {
-                    colorOverlayEffect(colorPicker.getValue(), mixSlider.getValue());
+                    applyColorOverlay(colorPicker.getValue(), mixSlider.getValue());
                 } 
             }
         });
@@ -600,18 +694,18 @@ public class PrimaryController {
                 restorePreviousImage(); // reset
 
                 if (previewToggle.isSelected()) {
-                    colorOverlayEffect(colorPicker.getValue(), mixSlider.getValue());
+                    applyColorOverlay(colorPicker.getValue(), mixSlider.getValue());
                 }
             }
         });
 
-        mixSlider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+        mixSlider.valueProperty().addListener(new ChangeListener<Number>() { 
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 restorePreviousImage(); // reset
 
                 if (previewToggle.isSelected()) {
-                    colorOverlayEffect(colorPicker.getValue(), (double) newValue); 
+                    applyColorOverlay(colorPicker.getValue(), (double) newValue); 
                 }
             }
         });
@@ -631,7 +725,7 @@ public class PrimaryController {
         dialog.showAndWait();
     }
 
-    private void colorOverlayEffect(Color overlayColor, double mix) {
+    private void applyColorOverlay(Color overlayColor, double mix) {
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -663,7 +757,7 @@ public class PrimaryController {
 
         // Elements
         Stage dialog = new Stage();
-        dialog.setTitle("Pixelate Image");
+        dialog.setTitle("Apply Pixelation Effect");
         dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
         dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
         dialog.setResizable(false);
@@ -690,7 +784,7 @@ public class PrimaryController {
             @Override
             public void handle(ActionEvent actionEvent) {
                 restorePreviousImage(); // Reset back to original (so effect doesn't stack)
-                pixelateEffect(spinner.getValue()); 
+                applyPixelation(spinner.getValue()); 
                 dialog.close();
             }
         });
@@ -709,7 +803,7 @@ public class PrimaryController {
                 restorePreviousImage();
 
                 if (newValue) {
-                    pixelateEffect(spinner.getValue());
+                    applyPixelation(spinner.getValue());
                 }
             }
         });
@@ -720,7 +814,7 @@ public class PrimaryController {
                 restorePreviousImage(); // reset
 
                 if (previewToggle.isSelected()) {
-                    pixelateEffect(newValue); 
+                    applyPixelation(newValue); 
                 }
             }
         });
@@ -740,7 +834,7 @@ public class PrimaryController {
         dialog.showAndWait();
     }
 
-    private void pixelateEffect(int blockSize) {
+    private void applyPixelation(int blockSize) {
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -764,9 +858,99 @@ public class PrimaryController {
 
         imageView.setImage(writableImage);
     }
-    
+
     @FXML
     void onVignette(ActionEvent event) {
+        if (!isImageLoaded()) {
+            return;
+        }
+
+        previousImage = imageView.getImage(); // Store previous image for previous
+
+        // Elements
+        Stage dialog = new Stage();
+        dialog.setTitle("Apply Vignette Effect");
+        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
+
+        dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
+        dialog.setResizable(false);
+
+        Slider slider = new Slider(0.0, 1.0, 0.5);
+        slider.setShowTickLabels(true);
+        slider.setShowTickMarks(true);
+        slider.setMajorTickUnit(0.5);
+        slider.setBlockIncrement(0.1);
+
+        CheckBox previewToggle = new CheckBox("Preview");
+        previewToggle.setSelected(false);
+
+        Button confirmButton = new Button("Confirm");
+        Button cancelButton = new Button("Cancel");
+
+        // Functionality
+        dialog.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent windowEvent) {
+                restorePreviousImage(); // Cancels if 'x' is clicked
+                dialog.close();
+            }
+        });
+
+        confirmButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                restorePreviousImage(); // Reset back to original (so effect doesn't stack)
+                applyVignette(slider.getValue());
+                dialog.close();
+            }
+        });
+
+        cancelButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                restorePreviousImage(); // Restore to the image before if cancelled
+                dialog.close();
+            }
+        });
+
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { 
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                restorePreviousImage();
+
+                if (newValue) {
+                    applyVignette(slider.getValue());
+                }
+            }
+        });
+
+        slider.valueProperty().addListener(new ChangeListener<Number>() { 
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                restorePreviousImage(); // reset
+
+                if (previewToggle.isSelected()) {
+                    applyVignette((double) newValue);
+                }
+            }
+        });
+
+        // Arrangement
+        VBox popup = new VBox(10, slider);
+        popup.setAlignment(Pos.CENTER);
+        popup.setPadding(new Insets(10));
+
+        HBox options = new HBox(10, previewToggle, cancelButton, confirmButton);
+        options.setAlignment(Pos.BOTTOM_RIGHT);
+
+        popup.getChildren().add(options);
+
+        Scene scene = new Scene(popup, 300, 100);
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
+    
+    private void applyVignette(double intensity) {
         // Image check
         if (!isImageLoaded()) {
             return;
@@ -786,7 +970,7 @@ public class PrimaryController {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 double distance = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
-                double brightnessFactor = Math.max(1 - (distance / maxDistance), 0.3);
+                double brightnessFactor = Math.max(1.0 - intensity * (distance / maxDistance), 0.3); // intensity factor for control
 
                 Color color = reader.getColor(x, y);
                 Color newColor = color.deriveColor(0, 1, 1, brightnessFactor); 
