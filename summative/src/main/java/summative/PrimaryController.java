@@ -621,6 +621,139 @@ public class PrimaryController {
     }
 
     @FXML
+    void onSwirl(ActionEvent event) {
+        if (!isImageLoaded()) {
+            return;
+        }
+
+        previousImage = imageView.getImage(); // Store previous image for previous
+
+        // Elements
+        Stage dialog = new Stage();
+        dialog.setTitle("Apply Bulge Effect");
+        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
+
+        dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
+        dialog.setResizable(false);
+
+        Slider slider = new Slider(0.5, 2.5, 1.5);
+        slider.setShowTickLabels(true);
+        slider.setShowTickMarks(true);
+        slider.setMajorTickUnit(0.5);
+        slider.setBlockIncrement(0.1);
+
+        CheckBox previewToggle = new CheckBox("Preview");
+        previewToggle.setSelected(false);
+
+        Button confirmButton = new Button("Confirm");
+        Button cancelButton = new Button("Cancel");
+
+        // Functionality
+        dialog.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent windowEvent) {
+                restorePreviousImage(); // Cancels if 'x' is clicked
+                dialog.close();
+            }
+        });
+
+        confirmButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                restorePreviousImage(); // Reset back to original (so effect doesn't stack)
+                applySwirl(slider.getValue());
+                dialog.close();
+            }
+        });
+
+        cancelButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                restorePreviousImage(); // Restore to the image before if cancelled
+                dialog.close();
+            }
+        });
+
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { 
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                restorePreviousImage();
+
+                if (newValue) {
+                    applySwirl(slider.getValue());
+                }
+            }
+        });
+
+        slider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                restorePreviousImage(); // reset
+
+                if (previewToggle.isSelected()) {
+                    applySwirl((double) newValue);
+                }
+            }
+        });
+
+        // Arrangement
+        VBox popup = new VBox(10, slider);
+        popup.setAlignment(Pos.CENTER);
+        popup.setPadding(new Insets(10));
+
+        HBox options = new HBox(10, previewToggle, cancelButton, confirmButton);
+        options.setAlignment(Pos.BOTTOM_RIGHT);
+
+        popup.getChildren().add(options);
+
+        Scene scene = new Scene(popup, 300, 100);
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
+
+    private void applySwirl(double strength) {
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
+        int width = (int) imageView.getImage().getWidth();
+        int height = (int) imageView.getImage().getHeight();
+
+        WritableImage writableImage = new WritableImage(width, height);
+        PixelReader reader = imageView.getImage().getPixelReader();
+        PixelWriter writer = writableImage.getPixelWriter();
+
+        double cx = width / 2.0;
+        double cy = height / 2.0;
+        double maxRadius = Math.sqrt(cx * cx + cy * cy); // max distance from center
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                double dx = x - cx;
+                double dy = y - cy;
+                double radius = Math.sqrt(dx * dx + dy * dy);
+                double angle = Math.atan2(dy, dx);
+
+                // double newRadius = Math.pow(radius, strength); // bulge effect
+                // newRadius *= maxRadius / Math.pow(maxRadius, strength); // correct the position (else it will "zooms")
+                double newRadius = Math.log(2) * radius / 5
+
+                double newAngle = Math.toRadians(10) + strength * ;
+
+                int newX = (int) (cx + newRadius * Math.cos(angle));
+                int newY = (int) (cy + newRadius * Math.sin(angle));
+                
+                if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
+                    writer.setColor(x, y, reader.getColor(newX, newY));
+                }
+            }
+        }
+
+        imageView.setImage(writableImage);
+    }
+
+    @FXML
     void onColorOverlay(ActionEvent event) {
         if (!isImageLoaded()) {
             return;
@@ -1078,6 +1211,64 @@ public class PrimaryController {
 
                 writer.setColor(x, y, newColor);
             }
+        }
+
+        imageView.setImage(writableImage);
+    }
+
+    @FXML
+    void onGaussianBlur(ActionEvent event) { 
+        // Image check
+        if (!isImageLoaded()) {
+            return;
+        }
+
+        int width = (int) imageView.getImage().getWidth();
+        int height = (int) imageView.getImage().getHeight();
+
+        WritableImage writableImage = new WritableImage(width, height);
+        PixelReader reader = imageView.getImage().getPixelReader();
+        PixelWriter writer = writableImage.getPixelWriter();
+
+        double[][] kernel = new double[3][3];
+        int kernelSize = 3; 
+        int offset = 0;
+        double sigma = 1.5;
+        double sum = 0;
+
+        double cx = width / 2.0;
+        double cy = height / 2.0;
+        double maxRadius = Math.sqrt(cx * cx + cy * cy); // max distance from center
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                double dx = x - cx;
+                double dy = y - cy;
+                
+            }
+        }
+
+        // populate kernel
+        for (int y = offset; y < height; y++) {
+            for (int x = offset; x < width; x++) {
+                double kernelValue = Math.pow((1 / (2 * Math.PI * sigma * sigma) * Math.E), -1 * (x * x + y * y) / (2 * sigma * sigma));
+                kernel[x][y] = kernelValue;
+
+                sum += kernelValue;
+            }
+        }    
+
+        // normalize kernel -> check if kernal adds to 1
+        for (int y = 0; y < kernelSize; y++) {
+            for (int x = 0; x < kernelSize; x++) {
+                kernel[x][y] /= sum;
+            }
+        }    
+
+        
+
+        for (int y = offset; y < height; y++) {
+
         }
 
         imageView.setImage(writableImage);
