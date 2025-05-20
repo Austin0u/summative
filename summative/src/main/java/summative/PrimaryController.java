@@ -78,6 +78,9 @@ public class PrimaryController {
     private MenuItem onBulge;
 
     @FXML
+    private MenuItem onSwirl;
+
+    @FXML
     private MenuItem onColorOverlay;
 
     @FXML
@@ -499,7 +502,7 @@ public class PrimaryController {
 
         // Elements
         Stage dialog = new Stage();
-        dialog.setTitle("Apply Bulge Effect");
+        dialog.setTitle("Apply Bulge");
         dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
 
         dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
@@ -630,17 +633,32 @@ public class PrimaryController {
 
         // Elements
         Stage dialog = new Stage();
-        dialog.setTitle("Apply Bulge Effect");
+        dialog.setTitle("Apply Swirl");
         dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
 
         dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
         dialog.setResizable(false);
 
-        Slider slider = new Slider(0.5, 2.5, 1.5);
-        slider.setShowTickLabels(true);
-        slider.setShowTickMarks(true);
-        slider.setMajorTickUnit(0.5);
-        slider.setBlockIncrement(0.1);
+        // Rotation slider
+        Slider rotationSlider = new Slider(-6, 6, 0);
+        rotationSlider.setShowTickLabels(true);
+        rotationSlider.setShowTickMarks(true);
+        rotationSlider.setMajorTickUnit(1.5);
+        rotationSlider.setBlockIncrement(0.5);
+
+        // Strength Slider
+        Slider strengthSlider = new Slider(-20, 20, 10);
+        strengthSlider.setShowTickLabels(true);
+        strengthSlider.setShowTickMarks(true);
+        strengthSlider.setMajorTickUnit(5);
+        strengthSlider.setBlockIncrement(1);
+
+        // Radius Slider
+        Slider radiusSlider = new Slider(0, 500, 150);
+        radiusSlider.setShowTickLabels(true);
+        radiusSlider.setShowTickMarks(true);
+        radiusSlider.setMajorTickUnit(25);
+        radiusSlider.setBlockIncrement(10);
 
         CheckBox previewToggle = new CheckBox("Preview");
         previewToggle.setSelected(false);
@@ -661,7 +679,7 @@ public class PrimaryController {
             @Override
             public void handle(ActionEvent actionEvent) {
                 restorePreviousImage(); // Reset back to original (so effect doesn't stack)
-                applySwirl(slider.getValue());
+                applySwirl(rotationSlider.getValue(), strengthSlider.getValue(), radiusSlider.getValue());
                 dialog.close();
             }
         });
@@ -680,24 +698,47 @@ public class PrimaryController {
                 restorePreviousImage();
 
                 if (newValue) {
-                    applySwirl(slider.getValue());
+                    applySwirl(rotationSlider.getValue(), strengthSlider.getValue(), radiusSlider.getValue());
                 }
             }
         });
 
-        slider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+        // Sliders
+        rotationSlider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 restorePreviousImage(); // reset
 
                 if (previewToggle.isSelected()) {
-                    applySwirl((double) newValue);
+                    applySwirl((double) newValue, strengthSlider.getValue(), radiusSlider.getValue());
+                }
+            }
+        });
+
+        strengthSlider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                restorePreviousImage(); // reset
+
+                if (previewToggle.isSelected()) {
+                    applySwirl(rotationSlider.getValue(), (double) newValue, radiusSlider.getValue());
+                }
+            }
+        });
+
+        radiusSlider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                restorePreviousImage(); // reset
+
+                if (previewToggle.isSelected()) {
+                    applySwirl(rotationSlider.getValue(), strengthSlider.getValue(), (double) newValue);
                 }
             }
         });
 
         // Arrangement
-        VBox popup = new VBox(10, slider);
+        VBox popup = new VBox(10, rotationSlider, strengthSlider, radiusSlider);
         popup.setAlignment(Pos.CENTER);
         popup.setPadding(new Insets(10));
 
@@ -706,17 +747,12 @@ public class PrimaryController {
 
         popup.getChildren().add(options);
 
-        Scene scene = new Scene(popup, 300, 100);
+        Scene scene = new Scene(popup, 300,300);
         dialog.setScene(scene);
         dialog.showAndWait();
     }
 
-    private void applySwirl(double strength) {
-        // Image check
-        if (!isImageLoaded()) {
-            return;
-        }
-
+    private void applySwirl(double rotation, double strength, double radius) {
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -726,23 +762,19 @@ public class PrimaryController {
 
         double cx = width / 2.0;
         double cy = height / 2.0;
-        double maxRadius = Math.sqrt(cx * cx + cy * cy); // max distance from center
+        double r = Math.log(2) * radius / 5;
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 double dx = x - cx;
                 double dy = y - cy;
-                double radius = Math.sqrt(dx * dx + dy * dy);
+                double p = Math.sqrt(dx * dx + dy * dy); // polar coordinate?
                 double angle = Math.atan2(dy, dx);
 
-                // double newRadius = Math.pow(radius, strength); // bulge effect
-                // newRadius *= maxRadius / Math.pow(maxRadius, strength); // correct the position (else it will "zooms")
-                double newRadius = Math.log(2) * radius / 5
+                double newAngle = angle + rotation + strength * Math.pow(Math.E, -p / r);
 
-                double newAngle = Math.toRadians(10) + strength * ;
-
-                int newX = (int) (cx + newRadius * Math.cos(angle));
-                int newY = (int) (cy + newRadius * Math.sin(angle));
+                int newX = (int) (cx + p * Math.cos(newAngle));
+                int newY = (int) (cy + p * Math.sin(newAngle));
                 
                 if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
                     writer.setColor(x, y, reader.getColor(newX, newY));
@@ -890,7 +922,7 @@ public class PrimaryController {
 
         // Elements
         Stage dialog = new Stage();
-        dialog.setTitle("Apply Pixelation Effect");
+        dialog.setTitle("Apply Pixelation");
         dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
         dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
         dialog.setResizable(false);
@@ -1002,7 +1034,7 @@ public class PrimaryController {
 
         // Elements
         Stage dialog = new Stage();
-        dialog.setTitle("Apply Vignette Effect");
+        dialog.setTitle("Apply Vignette");
         dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
 
         dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
