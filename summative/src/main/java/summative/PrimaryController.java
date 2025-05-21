@@ -95,6 +95,9 @@ public class PrimaryController {
     @FXML
     private MenuItem onEmboss;
 
+    @FXML
+    private MenuItem onGaussianBlur;
+
     // Other
     private boolean isImageLoaded() { // check and popup error
         if (imageView.getImage() == null) {
@@ -1262,45 +1265,43 @@ public class PrimaryController {
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
 
-        double[][] kernel = new double[3][3];
+        double[][] kernel = {
+            {1, 2, 1},
+            {2, 4, 2},
+            {1, 2, 1}
+        };
         int kernelSize = 3; 
         int offset = 0;
-        double sigma = 1.5;
-        double sum = 0;
-
-        double cx = width / 2.0;
-        double cy = height / 2.0;
-        double maxRadius = Math.sqrt(cx * cx + cy * cy); // max distance from center
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                double dx = x - cx;
-                double dy = y - cy;
-                
+                double red = 0;
+                double green = 0;
+                double blue = 0;
+
+                int count = 0;
+
+                for (int ky = 0; ky < kernelSize; ky++) {
+                    for (int kx = 0; kx < kernelSize; kx++) {
+                        if (y - 1 > 0 && y + 1 < height && x - 1 > 0 && x + 1 < width) {
+                            Color kernelColor = reader.getColor(x + kx - 1 - offset, y + ky - 1 - offset);
+                            red += kernelColor.getRed() * kernel[ky][kx] / 16;
+                            green += kernelColor.getGreen() * kernel[ky][kx] / 16;
+                            blue += kernelColor.getBlue() * kernel[ky][kx] / 16;
+
+
+                        }
+                    }
+                }
+
+                red = Math.max(0.0, Math.min(red / Math.pow(kernelSize, 2), 1.0));
+                green = Math.max(0.0, Math.min(green / Math.pow(kernelSize, 2), 1.0));
+                blue = Math.max(0.0, Math.min(blue / Math.pow(kernelSize, 2), 1.0));
+
+                Color newColor = new Color(red, green, blue, reader.getColor(x, y).getOpacity());
+
+                writer.setColor(x, y, newColor);
             }
-        }
-
-        // populate kernel
-        for (int y = offset; y < height; y++) {
-            for (int x = offset; x < width; x++) {
-                double kernelValue = Math.pow((1 / (2 * Math.PI * sigma * sigma) * Math.E), -1 * (x * x + y * y) / (2 * sigma * sigma));
-                kernel[x][y] = kernelValue;
-
-                sum += kernelValue;
-            }
-        }    
-
-        // normalize kernel -> check if kernal adds to 1
-        for (int y = 0; y < kernelSize; y++) {
-            for (int x = 0; x < kernelSize; x++) {
-                kernel[x][y] /= sum;
-            }
-        }    
-
-        
-
-        for (int y = offset; y < height; y++) {
-
         }
 
         imageView.setImage(writableImage);
