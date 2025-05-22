@@ -642,6 +642,11 @@ public class PrimaryController {
         dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
         dialog.setResizable(false);
 
+        // Labels
+        Label rotationLabel = new Label("Rotation:");
+        Label strengthLabel = new Label("Strength:");
+        Label radiusLabel = new Label("Radius:");
+
         // Rotation slider
         Slider rotationSlider = new Slider(-6, 6, 0);
         rotationSlider.setShowTickLabels(true);
@@ -660,8 +665,8 @@ public class PrimaryController {
         Slider radiusSlider = new Slider(0, 500, 150);
         radiusSlider.setShowTickLabels(true);
         radiusSlider.setShowTickMarks(true);
-        radiusSlider.setMajorTickUnit(25);
-        radiusSlider.setBlockIncrement(10);
+        radiusSlider.setMajorTickUnit(50);
+        radiusSlider.setBlockIncrement(25);
 
         CheckBox previewToggle = new CheckBox("Preview");
         previewToggle.setSelected(false);
@@ -741,7 +746,7 @@ public class PrimaryController {
         });
 
         // Arrangement
-        VBox popup = new VBox(10, rotationSlider, strengthSlider, radiusSlider);
+        VBox popup = new VBox(10, rotationLabel, rotationSlider, strengthLabel, strengthSlider, radiusLabel, radiusSlider);
         popup.setAlignment(Pos.CENTER);
         popup.setPadding(new Insets(10));
 
@@ -1264,14 +1269,24 @@ public class PrimaryController {
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
 
+        // predefined 3x3 kernel
+        // double[][] kernel = {
+        //     { 1, 2, 1 },
+        //     { 2, 4, 2 },
+        //     { 1, 2, 1 }
+        // }; 
+        // predefined 5x6 kernel
         double[][] kernel = {
-                { 1, 2, 1 },
-                { 2, 4, 2 },
-                { 1, 2, 1 }
-        };
-        int kernelSize = 3;
-        int offset = kernelSize / 2;
-        double kernelSum = 16.0; 
+            { 1, 4, 6, 4, 1 },
+            { 4, 16, 24, 16, 4 },
+            { 6, 24, 36, 24, 6 },
+            { 4, 16, 24, 16, 4 },
+            { 1, 4, 6, 4, 1 }
+        }; 
+
+        int kernelSize = 5;
+        int offset = kernelSize / 2; // fixes the weird shift
+        double kernelSum = 256; 
         
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
