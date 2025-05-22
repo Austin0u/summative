@@ -1252,8 +1252,7 @@ public class PrimaryController {
     }
 
     @FXML
-    void onGaussianBlur(ActionEvent event) { 
-        // Image check
+    void onGaussianBlur(ActionEvent event) {
         if (!isImageLoaded()) {
             return;
         }
@@ -1266,40 +1265,38 @@ public class PrimaryController {
         PixelWriter writer = writableImage.getPixelWriter();
 
         double[][] kernel = {
-            {1, 2, 1},
-            {2, 4, 2},
-            {1, 2, 1}
+                { 1, 2, 1 },
+                { 2, 4, 2 },
+                { 1, 2, 1 }
         };
-        int kernelSize = 3; 
-        int offset = 0;
-
+        int kernelSize = 3;
+        int offset = kernelSize / 2;
+        double kernelSum = 16.0; 
+        
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
+                // Accumulators
                 double red = 0;
                 double green = 0;
                 double blue = 0;
 
-                int count = 0;
-
                 for (int ky = 0; ky < kernelSize; ky++) {
                     for (int kx = 0; kx < kernelSize; kx++) {
-                        if (y - 1 > 0 && y + 1 < height && x - 1 > 0 && x + 1 < width) {
-                            Color kernelColor = reader.getColor(x + kx - 1 - offset, y + ky - 1 - offset);
-                            red += kernelColor.getRed() * kernel[ky][kx] / 16;
-                            green += kernelColor.getGreen() * kernel[ky][kx] / 16;
-                            blue += kernelColor.getBlue() * kernel[ky][kx] / 16;
+                        int dx = Math.min(Math.max(x + kx - offset, 0), width - 1); // clamp to image width
+                        int dy = Math.min(Math.max(y + ky - offset, 0), height - 1); // clamp to image height
 
-
-                        }
+                        Color kernelColor = reader.getColor(dx, dy);
+                        red += kernelColor.getRed() * kernel[ky][kx];
+                        green += kernelColor.getGreen() * kernel[ky][kx];
+                        blue += kernelColor.getBlue() * kernel[ky][kx];
                     }
                 }
 
-                red = Math.max(0.0, Math.min(red / Math.pow(kernelSize, 2), 1.0));
-                green = Math.max(0.0, Math.min(green / Math.pow(kernelSize, 2), 1.0));
-                blue = Math.max(0.0, Math.min(blue / Math.pow(kernelSize, 2), 1.0));
+                red = Math.max(0.0, Math.min(red / kernelSum, 1.0));
+                green = Math.max(0.0, Math.min(green / kernelSum, 1.0));
+                blue = Math.max(0.0, Math.min(blue / kernelSum, 1.0));
 
                 Color newColor = new Color(red, green, blue, reader.getColor(x, y).getOpacity());
-
                 writer.setColor(x, y, newColor);
             }
         }
