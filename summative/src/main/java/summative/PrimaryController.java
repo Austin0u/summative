@@ -1275,7 +1275,7 @@ public class PrimaryController {
         //     { 2, 4, 2 },
         //     { 1, 2, 1 }
         // }; 
-        // predefined 5x6 kernel
+        // predefined 5x5 kernel (would need gaussian distribution to make a custom kernel)
         double[][] kernel = {
             { 1, 4, 6, 4, 1 },
             { 4, 16, 24, 16, 4 },
