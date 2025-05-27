@@ -120,10 +120,6 @@ public class PrimaryController {
     // Menu
     @FXML
     void onOpenImage(ActionEvent event) {
-        Image defaultImage = new Image(getClass().getResourceAsStream("icon3.jpg")); // REMOVE LATER, FOR TESTING
-        imageView.setImage(defaultImage); // REMOVE LATER, FOR TESTING
-        originalImage = defaultImage; // REMOVE LATER, FOR TESTING
-
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Image File");
         fileChooser.getExtensionFilters().add(
