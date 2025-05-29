@@ -32,7 +32,7 @@ public class PrimaryController {
 
     private Stage stage;
     private Image originalImage; // Use this to keep track of the original image
-    private Image previousImage; // For previewing
+    private Image previousImage; // Saves previous image when previewing an effect
 
     // Main Menu
     @FXML
@@ -99,7 +99,7 @@ public class PrimaryController {
     private MenuItem onGaussianBlur;
 
     // Other
-    private boolean isImageLoaded() { // check and popup error
+    private boolean isImageLoaded() { // If no image is loaded, show an error
         if (imageView.getImage() == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
@@ -109,6 +109,10 @@ public class PrimaryController {
             return false;
         }
         return true;
+    }
+
+    private void setPreviousImage() {
+        previousImage = imageView.getImage();
     }
 
     private void restorePreviousImage() {
@@ -143,8 +147,7 @@ public class PrimaryController {
 
     @FXML
     public void onSaveImage(ActionEvent event) {
-        // Image check
-        if (!isImageLoaded()) {
+        if (!isImageLoaded()) { // Check if there is an image loaded first
             return;
         }
 
@@ -202,7 +205,6 @@ public class PrimaryController {
 
     @FXML
     void onVerticalFlip(ActionEvent event) {
-        // Image check
         if (!isImageLoaded()) {
             return;
         }
@@ -224,11 +226,10 @@ public class PrimaryController {
 
     @FXML
     void onRotate(ActionEvent event) {
-        // Image check
         if (!isImageLoaded()) {
             return;
         }
-        
+
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -236,16 +237,16 @@ public class PrimaryController {
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
 
-        double cx = width / 2.0; 
-        double cy = height / 2.0; 
-        double angle = Math.toRadians(90); // -90 for counterclockwise 
+        double cx = width / 2.0;
+        double cy = height / 2.0;
+        double angle = Math.toRadians(90); // e.g. 90 for clockwise and -90 for counterclockwise
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                double dx = x - cx; 
-                double dy = y - cy; 
-                int newX = (int) Math.round(dx * Math.cos(angle) - dy * Math.sin(angle) + cx); // fix was round?                                                      // better accuracy
-                int newY = (int) Math.round(dx * Math.sin(angle) + dy * Math.cos(angle) + cy); 
+                double dx = x - cx;
+                double dy = y - cy;
+                int newX = (int) Math.round(dx * Math.cos(angle) - dy * Math.sin(angle) + cx);
+                int newY = (int) Math.round(dx * Math.sin(angle) + dy * Math.cos(angle) + cy);
 
                 if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
                     writer.setColor(newX, newY, reader.getColor(x, y));
@@ -256,29 +257,9 @@ public class PrimaryController {
         imageView.setImage(writableImage);
     }
 
-    // Alternative rotate, works with any non-square image:
-    // @FXML
-    // void onRotate(ActionEvent event) {
-    //     int width = (int) imageView.getImage().getWidth();
-    //     int height = (int) imageView.getImage().getHeight();
-
-    //     WritableImage writableImage = new WritableImage(height, width);
-    //     PixelReader reader = imageView.getImage().getPixelReader();
-    //     PixelWriter writer = writableImage.getPixelWriter();
-
-    //     for (int x = 0; x < width; x++) {
-    //         for (int y = 0; y < height; y++) {
-    //             writer.setColor(height - y - 1, x, reader.getColor(x, y));
-    //         }
-    //     }
-
-    //     imageView.setImage(writableImage);
-    // }
-
     // Adjustments
     @FXML
     void onGrayscale(ActionEvent event) {
-        // Image check
         if (!isImageLoaded()) {
             return;
         }
@@ -297,7 +278,7 @@ public class PrimaryController {
                 double green = color.getGreen();
                 double blue = color.getBlue();
 
-                double gray = red * 0.21 + green * 0.71 + blue * 0.07; // sum
+                double gray = red * 0.21 + green * 0.71 + blue * 0.07;
                 Color newColor = new Color(gray, gray, gray, color.getOpacity());
                 writer.setColor(x, y, newColor);
             }
@@ -308,7 +289,6 @@ public class PrimaryController {
 
     @FXML
     void onSepiaFilter(ActionEvent event) {
-        // Image check
         if (!isImageLoaded()) {
             return;
         }
@@ -328,7 +308,7 @@ public class PrimaryController {
                 double blue = color.getBlue();
 
                 // Sepia filter formula
-                double newRed = Math.min(0.393 * red + 0.769 * green + 0.189 * blue,1.0);
+                double newRed = Math.min(0.393 * red + 0.769 * green + 0.189 * blue, 1.0);
                 double newGreen = Math.min(0.349 * red + 0.686 * green + 0.168 * blue, 1.0);
                 double newBlue = Math.min(0.272 * red + 0.534 * green + 0.131 * blue, 1.0);
 
@@ -342,7 +322,6 @@ public class PrimaryController {
 
     @FXML
     void onInvert(ActionEvent event) {
-        // Image check
         if (!isImageLoaded()) {
             return;
         }
@@ -367,7 +346,7 @@ public class PrimaryController {
         }
 
         imageView.setImage(writableImage);
-    }    
+    }
 
     @FXML
     private void onBrightnessAdjust(ActionEvent event) {
@@ -375,17 +354,18 @@ public class PrimaryController {
             return;
         }
 
-        previousImage = imageView.getImage(); // Store previous image for previous
+        setPreviousImage();
+        setPreviousImage();
 
         // Elements
         Stage dialog = new Stage();
         dialog.setTitle("Adjust Brightness");
-        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
+        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon.jpg")));
 
         dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
         dialog.setResizable(false);
 
-        Slider slider = new Slider(0.0, 2.0, 1.0); 
+        Slider slider = new Slider(0.0, 2.0, 1.0);
         slider.setShowTickLabels(true);
         slider.setShowTickMarks(true);
         slider.setMajorTickUnit(0.5);
@@ -398,10 +378,10 @@ public class PrimaryController {
         Button cancelButton = new Button("Cancel");
 
         // Functionality
-        dialog.setOnCloseRequest(new EventHandler<WindowEvent>() {
+        dialog.setOnCloseRequest(new EventHandler<WindowEvent>() { // Cancels if 'x' on window is clicked
             @Override
             public void handle(WindowEvent windowEvent) {
-                restorePreviousImage(); // Cancels if 'x' is clicked
+                restorePreviousImage();
                 dialog.close();
             }
         });
@@ -409,7 +389,7 @@ public class PrimaryController {
         confirmButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                restorePreviousImage(); // Reset back to original (so effect doesn't stack)
+                restorePreviousImage();
                 adjustBrightness(slider.getValue());
                 dialog.close();
             }
@@ -418,29 +398,29 @@ public class PrimaryController {
         cancelButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                restorePreviousImage(); // Restore to the image before if cancelled
+                restorePreviousImage();
                 dialog.close();
             }
         });
 
-        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { // shows effect without having to change slider
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 restorePreviousImage();
 
                 if (newValue) {
-                    adjustBrightness(slider.getValue()); 
-                } 
+                    adjustBrightness(slider.getValue());
+                }
             }
         });
 
-        slider.valueProperty().addListener(new ChangeListener<Number>() { 
+        slider.valueProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                restorePreviousImage(); // reset
+                restorePreviousImage();
 
                 if (previewToggle.isSelected()) {
-                    adjustBrightness((double) newValue); 
+                    adjustBrightness((double) newValue);
                 }
             }
         });
@@ -451,7 +431,7 @@ public class PrimaryController {
         popup.setPadding(new Insets(10));
 
         HBox options = new HBox(10, previewToggle, cancelButton, confirmButton);
-        options.setAlignment(Pos.BOTTOM_RIGHT); 
+        options.setAlignment(Pos.BOTTOM_RIGHT);
 
         popup.getChildren().add(options);
 
@@ -468,7 +448,7 @@ public class PrimaryController {
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
 
-        double factor = sliderValue - 1; // since slider is 0-2
+        double factor = sliderValue - 1; // Slider range is 0->2 (0->1 is decrease, 1->2 is incease)
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -477,7 +457,7 @@ public class PrimaryController {
                 double green = color.getGreen();
                 double blue = color.getBlue();
 
-                // clamp
+                // Clamp
                 double newRed = Math.max(Math.min(red * (1 + factor), 1.0), 0.0);
                 double newGreen = Math.max(Math.min(green * (1 + factor), 1.0), 0.0);
                 double newBlue = Math.max(Math.min(blue * (1 + factor), 1.0), 0.0);
@@ -497,14 +477,15 @@ public class PrimaryController {
             return;
         }
 
-        previousImage = imageView.getImage(); // Store previous image for previous
+        setPreviousImage();
+        setPreviousImage();
 
         // Elements
         Stage dialog = new Stage();
         dialog.setTitle("Apply Bulge");
-        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
+        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon.jpg")));
 
-        dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
+        dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setResizable(false);
 
         Slider slider = new Slider(0.5, 2.5, 1.5);
@@ -523,7 +504,7 @@ public class PrimaryController {
         dialog.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent windowEvent) {
-                restorePreviousImage(); // Cancels if 'x' is clicked
+                restorePreviousImage();
                 dialog.close();
             }
         });
@@ -531,7 +512,7 @@ public class PrimaryController {
         confirmButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                restorePreviousImage(); // Reset back to original (so effect doesn't stack)
+                restorePreviousImage();
                 applyBulge(slider.getValue());
                 dialog.close();
             }
@@ -540,12 +521,12 @@ public class PrimaryController {
         cancelButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                restorePreviousImage(); // Restore to the image before if cancelled
+                restorePreviousImage();
                 dialog.close();
             }
         });
 
-        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { 
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 restorePreviousImage();
@@ -556,10 +537,10 @@ public class PrimaryController {
             }
         });
 
-        slider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+        slider.valueProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                restorePreviousImage(); // reset
+                restorePreviousImage();
 
                 if (previewToggle.isSelected()) {
                     applyBulge((double) newValue);
@@ -583,11 +564,6 @@ public class PrimaryController {
     }
 
     private void applyBulge(double strength) {
-        // Image check
-        if (!isImageLoaded()) {
-            return;
-        }
-
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -608,11 +584,11 @@ public class PrimaryController {
                 // double newRadius = Math.pow(radius, 1.6) / 30; // original
 
                 double newRadius = Math.pow(radius, strength); // bulge effect
-                newRadius *= maxRadius / Math.pow(maxRadius, strength); // correct the position (else it will "zooms")
+                newRadius *= maxRadius / Math.pow(maxRadius, strength); // correct the position (*ratio of maxRadius / adjusted maxRadius)
 
                 int newX = (int) (cx + newRadius * Math.cos(angle));
                 int newY = (int) (cy + newRadius * Math.sin(angle));
-                
+
                 if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
                     writer.setColor(x, y, reader.getColor(newX, newY));
                 }
@@ -628,14 +604,14 @@ public class PrimaryController {
             return;
         }
 
-        previousImage = imageView.getImage(); // Store previous image for previous
+        setPreviousImage();
 
         // Elements
         Stage dialog = new Stage();
         dialog.setTitle("Apply Swirl");
-        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
+        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon.jpg")));
 
-        dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
+        dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setResizable(false);
 
         // Labels
@@ -671,10 +647,10 @@ public class PrimaryController {
         Button cancelButton = new Button("Cancel");
 
         // Functionality
-        dialog.setOnCloseRequest(new EventHandler<WindowEvent>() {
+        dialog.setOnCloseRequest(new EventHandler<WindowEvent>() { // Cancels action if 'x' is clicked
             @Override
             public void handle(WindowEvent windowEvent) {
-                restorePreviousImage(); // Cancels if 'x' is clicked
+                restorePreviousImage();
                 dialog.close();
             }
         });
@@ -691,12 +667,12 @@ public class PrimaryController {
         cancelButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                restorePreviousImage(); // Restore to the image before if cancelled
+                restorePreviousImage(); // Restore to the previous image if cancelled
                 dialog.close();
             }
         });
 
-        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { 
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 restorePreviousImage();
@@ -708,10 +684,10 @@ public class PrimaryController {
         });
 
         // Sliders
-        rotationSlider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+        rotationSlider.valueProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                restorePreviousImage(); // reset
+                restorePreviousImage();
 
                 if (previewToggle.isSelected()) {
                     applySwirl((double) newValue, strengthSlider.getValue(), radiusSlider.getValue());
@@ -719,10 +695,10 @@ public class PrimaryController {
             }
         });
 
-        strengthSlider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+        strengthSlider.valueProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                restorePreviousImage(); // reset
+                restorePreviousImage();
 
                 if (previewToggle.isSelected()) {
                     applySwirl(rotationSlider.getValue(), (double) newValue, radiusSlider.getValue());
@@ -730,10 +706,10 @@ public class PrimaryController {
             }
         });
 
-        radiusSlider.valueProperty().addListener(new ChangeListener<Number>() { // Cannot put Double?
+        radiusSlider.valueProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                restorePreviousImage(); // reset
+                restorePreviousImage();
 
                 if (previewToggle.isSelected()) {
                     applySwirl(rotationSlider.getValue(), strengthSlider.getValue(), (double) newValue);
@@ -742,7 +718,8 @@ public class PrimaryController {
         });
 
         // Arrangement
-        VBox popup = new VBox(10, rotationLabel, rotationSlider, strengthLabel, strengthSlider, radiusLabel, radiusSlider);
+        VBox popup = new VBox(10, rotationLabel, rotationSlider, strengthLabel, strengthSlider, radiusLabel,
+                radiusSlider);
         popup.setAlignment(Pos.CENTER);
         popup.setPadding(new Insets(10));
 
@@ -751,7 +728,7 @@ public class PrimaryController {
 
         popup.getChildren().add(options);
 
-        Scene scene = new Scene(popup, 300,300);
+        Scene scene = new Scene(popup, 300, 300);
         dialog.setScene(scene);
         dialog.showAndWait();
     }
@@ -772,14 +749,14 @@ public class PrimaryController {
             for (int x = 0; x < width; x++) {
                 double dx = x - cx;
                 double dy = y - cy;
-                double p = Math.sqrt(dx * dx + dy * dy); // polar coordinate?
+                double p = Math.sqrt(dx * dx + dy * dy);
                 double angle = Math.atan2(dy, dx);
 
                 double newAngle = angle + rotation + strength * Math.pow(Math.E, -p / r);
 
                 int newX = (int) (cx + p * Math.cos(newAngle));
                 int newY = (int) (cy + p * Math.sin(newAngle));
-                
+
                 if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
                     writer.setColor(x, y, reader.getColor(newX, newY));
                 }
@@ -795,21 +772,21 @@ public class PrimaryController {
             return;
         }
 
-        previousImage = imageView.getImage(); // Store previous image for previous
+        setPreviousImage();
 
         // Elements
         Stage dialog = new Stage();
         dialog.setTitle("Color Overlay");
-        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
+        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon.jpg")));
 
-        dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
+        dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setResizable(false);
 
-        ColorPicker colorPicker = new ColorPicker(); 
+        ColorPicker colorPicker = new ColorPicker();
 
         Label mixLabel = new Label("Mix %:");
 
-        Slider mixSlider = new Slider(0.0, 100.0, 50.0); 
+        Slider mixSlider = new Slider(0.0, 100.0, 50.0);
         mixSlider.setShowTickLabels(true);
         mixSlider.setShowTickMarks(true);
         mixSlider.setMajorTickUnit(25);
@@ -822,10 +799,10 @@ public class PrimaryController {
         Button cancelButton = new Button("Cancel");
 
         // Functionality
-        dialog.setOnCloseRequest(new EventHandler<WindowEvent>() {
+        dialog.setOnCloseRequest(new EventHandler<WindowEvent>() { // Reverts image on cancel
             @Override
             public void handle(WindowEvent windowEvent) {
-                restorePreviousImage(); // Cancels if 'x' is clicked
+                restorePreviousImage();
                 dialog.close();
             }
         });
@@ -833,34 +810,34 @@ public class PrimaryController {
         confirmButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                restorePreviousImage(); // Reset back to original (so effect doesn't stack)
+                restorePreviousImage();
                 applyColorOverlay(colorPicker.getValue(), mixSlider.getValue());
                 dialog.close();
             }
         });
 
-        cancelButton.setOnAction(new EventHandler<ActionEvent>() {
+        cancelButton.setOnAction(new EventHandler<ActionEvent>() { // Reverts if cancel is clicked
             @Override
             public void handle(ActionEvent actionEvent) {
-                restorePreviousImage(); // Restore to the image before if cancelled
+                restorePreviousImage();
                 dialog.close();
             }
         });
 
-        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { 
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 restorePreviousImage();
 
                 if (newValue) {
                     applyColorOverlay(colorPicker.getValue(), mixSlider.getValue());
-                } 
+                }
             }
         });
-        
+
         colorPicker.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                restorePreviousImage(); // reset
+                restorePreviousImage();
 
                 if (previewToggle.isSelected()) {
                     applyColorOverlay(colorPicker.getValue(), mixSlider.getValue());
@@ -868,13 +845,13 @@ public class PrimaryController {
             }
         });
 
-        mixSlider.valueProperty().addListener(new ChangeListener<Number>() { 
+        mixSlider.valueProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                restorePreviousImage(); // reset
+                restorePreviousImage();
 
                 if (previewToggle.isSelected()) {
-                    applyColorOverlay(colorPicker.getValue(), (double) newValue); 
+                    applyColorOverlay(colorPicker.getValue(), (double) newValue);
                 }
             }
         });
@@ -885,7 +862,7 @@ public class PrimaryController {
         popup.setPadding(new Insets(10));
 
         HBox options = new HBox(10, previewToggle, cancelButton, confirmButton);
-        options.setAlignment(Pos.BOTTOM_RIGHT); 
+        options.setAlignment(Pos.BOTTOM_RIGHT);
 
         popup.getChildren().add(options);
 
@@ -902,36 +879,34 @@ public class PrimaryController {
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
 
-        // Color overlayColor = new Color(0.36, 0.61, 0.61, 0.5); // Changing opacity doesn't do anything?
-
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 Color color = reader.getColor(x, y);
 
-                Color newColour = color.interpolate(overlayColor, mix/100); // assume mix input is percent
+                Color newColour = color.interpolate(overlayColor, mix / 100); // assume mix input is in percent
                 writer.setColor(x, y, newColour);
             }
         }
 
         imageView.setImage(writableImage);
     }
-    
+
     @FXML
     void onPixelation(ActionEvent event) {
         if (!isImageLoaded()) {
             return;
         }
 
-        previousImage = imageView.getImage(); // Store previous image for previous
+        setPreviousImage();
 
         // Elements
         Stage dialog = new Stage();
         dialog.setTitle("Apply Pixelation");
-        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
-        dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
+        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon.jpg")));
+        dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setResizable(false);
 
-        Spinner<Integer> spinner = new Spinner<>(1, 50, 10, 1); 
+        Spinner<Integer> spinner = new Spinner<>(1, 50, 10, 1);
         spinner.setEditable(true);
 
         CheckBox previewToggle = new CheckBox("Preview");
@@ -940,11 +915,11 @@ public class PrimaryController {
         Button confirmButton = new Button("Confirm");
         Button cancelButton = new Button("Cancel");
 
-        // 
+        //
         dialog.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent windowEvent) {
-                restorePreviousImage(); // Cancels if 'x' is clicked
+                restorePreviousImage();
                 dialog.close();
             }
         });
@@ -952,8 +927,8 @@ public class PrimaryController {
         confirmButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                restorePreviousImage(); // Reset back to original (so effect doesn't stack)
-                applyPixelation(spinner.getValue()); 
+                restorePreviousImage();
+                applyPixelation(spinner.getValue());
                 dialog.close();
             }
         });
@@ -961,12 +936,12 @@ public class PrimaryController {
         cancelButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                restorePreviousImage(); // Restore to the image before if cancelled
+                restorePreviousImage();
                 dialog.close();
             }
         });
 
-        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { // shows effect without having to change spinner
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 restorePreviousImage();
@@ -980,10 +955,10 @@ public class PrimaryController {
         spinner.valueProperty().addListener(new ChangeListener<Integer>() {
             @Override
             public void changed(ObservableValue<? extends Integer> observable, Integer oldValue, Integer newValue) {
-                restorePreviousImage(); // reset
+                restorePreviousImage();
 
                 if (previewToggle.isSelected()) {
-                    applyPixelation(newValue); 
+                    applyPixelation(newValue);
                 }
             }
         });
@@ -994,7 +969,7 @@ public class PrimaryController {
         popup.setPadding(new Insets(10));
 
         HBox options = new HBox(10, previewToggle, cancelButton, confirmButton);
-        options.setAlignment(Pos.BOTTOM_RIGHT); 
+        options.setAlignment(Pos.BOTTOM_RIGHT);
 
         popup.getChildren().add(options);
 
@@ -1011,7 +986,7 @@ public class PrimaryController {
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
 
-        // Lopp through pixels in blocks
+        // Loop through pixels in blocks
         for (int y = 0; y < height; y += blockSize) {
             for (int x = 0; x < width; x += blockSize) {
                 Color color = reader.getColor(x, y); // corner color
@@ -1034,14 +1009,13 @@ public class PrimaryController {
             return;
         }
 
-        previousImage = imageView.getImage(); // Store previous image for previous
+        setPreviousImage();
 
         // Elements
         Stage dialog = new Stage();
         dialog.setTitle("Apply Vignette");
-        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
-
-        dialog.initModality(Modality.APPLICATION_MODAL); // lock interaction
+        dialog.getIcons().add(new Image(getClass().getResourceAsStream("icon.jpg")));
+        dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setResizable(false);
 
         Slider slider = new Slider(0.0, 1.0, 0.5);
@@ -1082,7 +1056,7 @@ public class PrimaryController {
             }
         });
 
-        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() { 
+        previewToggle.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 restorePreviousImage();
@@ -1093,10 +1067,10 @@ public class PrimaryController {
             }
         });
 
-        slider.valueProperty().addListener(new ChangeListener<Number>() { 
+        slider.valueProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                restorePreviousImage(); // reset
+                restorePreviousImage();
 
                 if (previewToggle.isSelected()) {
                     applyVignette((double) newValue);
@@ -1118,13 +1092,8 @@ public class PrimaryController {
         dialog.setScene(scene);
         dialog.showAndWait();
     }
-    
-    private void applyVignette(double intensity) {
-        // Image check
-        if (!isImageLoaded()) {
-            return;
-        }
 
+    private void applyVignette(double intensity) {
         int width = (int) imageView.getImage().getWidth();
         int height = (int) imageView.getImage().getHeight();
 
@@ -1139,10 +1108,10 @@ public class PrimaryController {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 double distance = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
-                double brightnessFactor = Math.max(1.0 - intensity * (distance / maxDistance), 0.3); // intensity factor for control
+                double brightnessFactor = Math.max(1.0 - intensity * (distance / maxDistance), 0.3); // control with intensity factor
 
                 Color color = reader.getColor(x, y);
-                Color newColor = color.deriveColor(0, 1, 1, brightnessFactor); 
+                Color newColor = color.deriveColor(0, 1, 1, brightnessFactor);
                 writer.setColor(x, y, newColor);
             }
         }
@@ -1152,7 +1121,6 @@ public class PrimaryController {
 
     @FXML
     void onEdgeDetection(ActionEvent event) {
-        // Image check
         if (!isImageLoaded()) {
             return;
         }
@@ -1179,7 +1147,7 @@ public class PrimaryController {
                 double blue = 0;
 
                 for (int ky = 0; ky < kernelSize && y + ky < height; ky++) {
-                    for (int kx = 0; kx < kernelSize  && x + kx < width; kx++) {
+                    for (int kx = 0; kx < kernelSize && x + kx < width; kx++) {
                         Color kernelColor = reader.getColor(x + kx - offset, y + ky - offset);
                         red += kernelColor.getRed() * kernel[ky][kx];
                         green += kernelColor.getGreen() * kernel[ky][kx];
@@ -1202,8 +1170,7 @@ public class PrimaryController {
     }
 
     @FXML
-    void onEmboss(ActionEvent event) { 
-        // Image check
+    void onEmboss(ActionEvent event) {
         if (!isImageLoaded()) {
             return;
         }
@@ -1216,9 +1183,9 @@ public class PrimaryController {
         PixelWriter writer = writableImage.getPixelWriter();
 
         double[][] kernel = {
-            { -2, -1, 0 },
-            { -1, 1, 1 },
-            { 0, 1, 2 }
+                { -2, -1, 0 },
+                { -1, 1, 1 },
+                { 0, 1, 2 }
         };
         int kernelSize = 3;
         int offset = 0;
@@ -1230,7 +1197,7 @@ public class PrimaryController {
                 double blue = 0;
 
                 for (int ky = 0; ky < kernelSize && y + ky < height; ky++) {
-                    for (int kx = 0; kx < kernelSize  && x + kx < width; kx++) {
+                    for (int kx = 0; kx < kernelSize && x + kx < width; kx++) {
                         Color kernelColor = reader.getColor(x + kx - offset, y + ky - offset);
                         red += kernelColor.getRed() * kernel[ky][kx];
                         green += kernelColor.getGreen() * kernel[ky][kx];
@@ -1265,25 +1232,19 @@ public class PrimaryController {
         PixelReader reader = imageView.getImage().getPixelReader();
         PixelWriter writer = writableImage.getPixelWriter();
 
-        // predefined 3x3 kernel
-        // double[][] kernel = {
-        //     { 1, 2, 1 },
-        //     { 2, 4, 2 },
-        //     { 1, 2, 1 }
-        // }; 
-        // predefined 5x5 kernel (would need gaussian distribution to make a custom kernel)
+        // predefined 5x5 kernel
         double[][] kernel = {
-            { 1, 4, 6, 4, 1 },
-            { 4, 16, 24, 16, 4 },
-            { 6, 24, 36, 24, 6 },
-            { 4, 16, 24, 16, 4 },
-            { 1, 4, 6, 4, 1 }
-        }; 
+                { 1, 4, 6, 4, 1 },
+                { 4, 16, 24, 16, 4 },
+                { 6, 24, 36, 24, 6 },
+                { 4, 16, 24, 16, 4 },
+                { 1, 4, 6, 4, 1 }
+        };
 
         int kernelSize = 5;
-        int offset = kernelSize / 2; // fixes the weird shift
-        double kernelSum = 256; 
-        
+        int offset = kernelSize / 2; // fixes the shift
+        double kernelSum = 256;
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 // Accumulators
