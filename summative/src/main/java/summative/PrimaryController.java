@@ -1146,9 +1146,11 @@ public class PrimaryController {
                 double green = 0;
                 double blue = 0;
 
-                for (int ky = 0; ky < kernelSize && y + ky < height; ky++) {
-                    for (int kx = 0; kx < kernelSize && x + kx < width; kx++) {
-                        Color kernelColor = reader.getColor(x + kx - offset, y + ky - offset);
+                for (int ky = 0; ky < kernelSize; ky++) {
+                    for (int kx = 0; kx < kernelSize; kx++) {
+                        int dx = Math.min(Math.max(x + kx - offset, 0), width - 1);
+                        int dy = Math.min(Math.max(y + ky - offset, 0), height - 1);
+                        Color kernelColor = reader.getColor(dx, dy);
                         red += kernelColor.getRed() * kernel[ky][kx];
                         green += kernelColor.getGreen() * kernel[ky][kx];
                         blue += kernelColor.getBlue() * kernel[ky][kx];
@@ -1196,9 +1198,11 @@ public class PrimaryController {
                 double green = 0;
                 double blue = 0;
 
-                for (int ky = 0; ky < kernelSize && y + ky < height; ky++) {
-                    for (int kx = 0; kx < kernelSize && x + kx < width; kx++) {
-                        Color kernelColor = reader.getColor(x + kx - offset, y + ky - offset);
+                for (int ky = 0; ky < kernelSize; ky++) {
+                    for (int kx = 0; kx < kernelSize; kx++) {
+                        int dx = Math.min(Math.max(x + kx - offset, 0), width - 1);
+                        int dy = Math.min(Math.max(y + ky - offset, 0), height - 1);
+                        Color kernelColor = reader.getColor(dx, dy);
                         red += kernelColor.getRed() * kernel[ky][kx];
                         green += kernelColor.getGreen() * kernel[ky][kx];
                         blue += kernelColor.getBlue() * kernel[ky][kx];

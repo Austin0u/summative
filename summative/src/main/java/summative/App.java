@@ -18,7 +18,7 @@ public class App extends Application {
         controller.setStage(primaryStage);
 
         primaryStage.setTitle("Silly Photo Editor");
-        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("icon3.jpg")));
+        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("icon.jpg")));
         primaryStage.setScene(new Scene(root, 750, 750));
         primaryStage.show();
     }
