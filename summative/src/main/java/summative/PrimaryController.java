@@ -115,7 +115,7 @@ public class PrimaryController {
         previousImage = imageView.getImage();
     }
 
-    private void restorePreviousImage() {
+    public void restorePreviousImage() {
         if (previousImage != null) {
             imageView.setImage(previousImage);
         }
@@ -349,12 +349,11 @@ public class PrimaryController {
     }
 
     @FXML
-    private void onBrightnessAdjust(ActionEvent event) {
+    void onBrightnessAdjust(ActionEvent event) {
         if (!isImageLoaded()) {
             return;
         }
 
-        setPreviousImage();
         setPreviousImage();
 
         // Elements

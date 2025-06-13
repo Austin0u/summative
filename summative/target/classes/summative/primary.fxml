@@ -74,7 +74,7 @@
                   <MenuItem fx:id="onBulge" mnemonicParsing="false" onAction="#onBulge" text="Bulge" />
                   <MenuItem fx:id="onSwirl" mnemonicParsing="false" onAction="#onSwirl" text="Swirl" />
                   <MenuItem fx:id="onColorOverlay" mnemonicParsing="false" onAction="#onColorOverlay" text="Color Overlay" />
-                  <MenuItem fx:id="onPixelation" mnemonicParsing="false" onAction="#onPixelation" text="Pixelation" />
+                  <MenuItem fx:id="onPixelation" mnemonicParsing="false" onAction="#onPixelation" text="Pixelate" />
                   <MenuItem fx:id="onVignette" mnemonicParsing="false" onAction="#onVignette" text="Vignette" />
                   <MenuItem fx:id="onEdgeDetection" mnemonicParsing="false" onAction="#onEdgeDetection" text="Edge Detection" />
                   <MenuItem fx:id="onEmboss" mnemonicParsing="false" onAction="#onEmboss" text="Emboss" />
