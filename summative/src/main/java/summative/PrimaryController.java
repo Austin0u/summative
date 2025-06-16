@@ -115,7 +115,7 @@ public class PrimaryController {
         previousImage = imageView.getImage();
     }
 
-    public void restorePreviousImage() {
+    private void restorePreviousImage() {
         if (previousImage != null) {
             imageView.setImage(previousImage);
         }
@@ -476,7 +476,6 @@ public class PrimaryController {
             return;
         }
 
-        setPreviousImage();
         setPreviousImage();
 
         // Elements
@@ -1132,9 +1131,9 @@ public class PrimaryController {
         PixelWriter writer = writableImage.getPixelWriter();
 
         double[][] kernel = {
-                { 1, 1, 1 },
-                { 1, -7, 1 },
-                { 1, 1, 1 }
+            { 1, 1, 1 },
+            { 1, -7, 1 },
+            { 1, 1, 1 }
         };
         int kernelSize = 3;
         int offset = 0;
@@ -1184,9 +1183,9 @@ public class PrimaryController {
         PixelWriter writer = writableImage.getPixelWriter();
 
         double[][] kernel = {
-                { -2, -1, 0 },
-                { -1, 1, 1 },
-                { 0, 1, 2 }
+            { -2, -1, 0 },
+            { -1, 1, 1 },
+            { 0, 1, 2 }
         };
         int kernelSize = 3;
         int offset = 0;
@@ -1237,11 +1236,11 @@ public class PrimaryController {
 
         // predefined 5x5 kernel
         double[][] kernel = {
-                { 1, 4, 6, 4, 1 },
-                { 4, 16, 24, 16, 4 },
-                { 6, 24, 36, 24, 6 },
-                { 4, 16, 24, 16, 4 },
-                { 1, 4, 6, 4, 1 }
+            { 1, 4, 6, 4, 1 },
+            { 4, 16, 24, 16, 4 },
+            { 6, 24, 36, 24, 6 },
+            { 4, 16, 24, 16, 4 },
+            { 1, 4, 6, 4, 1 }
         };
 
         int kernelSize = 5;
